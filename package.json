@@ -1,7 +1,9 @@
 {
 	"name": "webflow-react",
-	"version": "0.8.27",
-	"description": "A CLI tool to Migrate a Webflow project into a React app",
+	"version": "0.1.0",
+	"description": "A CLI tool to Migrate a Webflow project into a React app.",
+	"author": "abruptive",
+	"license": "Apache 2.0",
 	"main": "build/webflow-react.js",
 	"bin": {
 		"webflow-react": "webflow-react"
