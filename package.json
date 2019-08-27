@@ -1,0 +1,43 @@
+{
+	"name": "webflow-react",
+	"version": "0.8.27",
+	"description": "A CLI tool to Migrate a Webflow project into a React app",
+	"main": "build/webflow-react.js",
+	"bin": {
+		"webflow-react": "webflow-react"
+	},
+	"scripts": {
+		"build": "webpack --config webpack.config.js",
+		"prepublish": "npm run build"
+	},
+	"dependencies": {
+		"cheerio": "^1.0.0-rc.2",
+		"clean-css": "^4.1.11",
+		"execa": "^0.11.0",
+		"find-root": "^1.1.0",
+		"fs-extra": "^7.0.0",
+		"htmltojsx": "https://github.com/franciscofsales/react-magic",
+		"minimist": "^1.2.0",
+		"recursive-readdir": "^2.2.2",
+		"resolve": "^1.8.1",
+		"rimraf": "^2.6.3",
+		"source-map-support": "^0.5.9",
+		"statuses": "^1.5.0",
+		"uglify-js": "^3.4.5"
+	},
+	"devDependencies": {
+		"babel-core": "^6.26.3",
+		"babel-eslint": "^8.2.6",
+		"babel-loader": "^7.1.5",
+		"babel-plugin-transform-decorators-legacy": "^1.3.5",
+		"babel-polyfill": "^6.26.0",
+		"babel-preset-es2017": "^6.24.1",
+		"babel-preset-stage-2": "^6.24.1",
+		"eslint": "^5.1.0",
+		"eslint-loader": "^2.1.0",
+		"node-fetch": "^2.6.0",
+		"webpack": "^4.16.1",
+		"webpack-cli": "^3.1.0",
+		"webpack-node-externals": "^1.7.2"
+	}
+}

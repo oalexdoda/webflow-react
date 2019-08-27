@@ -1,0 +1,153 @@
+#!/usr/bin/env node
+
+const { transpile } = require("./build/webflow-react");
+const findRoot = require("find-root");
+const fs = require("fs");
+const minimist = require("minimist");
+const path = require("path");
+const pack = require("./package.json");
+
+const root = findRoot(process.cwd());
+
+let { input, output, source, config, prefetch, help, version } = minimist(
+  process.argv.slice(2),
+  {
+    string: ["output", "input", "source", "config"],
+    boolean: ["prefetch", "help"],
+    alias: {
+      in: "input",
+      out: "output",
+      src: "source",
+      cfg: "config"
+    },
+    default: {
+      prefetch: false,
+      help: false,
+      input: `${root}/.webflow`,
+      output: root,
+      source: ""
+    }
+  }
+);
+
+if (help) {
+  console.log(`
+usage: webflow-react [--version] [--help] [--in | --input <path>] [--out | --output <path>]
+                [--src | --source <name>] [--cfg | --config <path>] [--prefetch]
+`);
+
+  process.exit(0);
+}
+
+if (version) {
+  console.log(`webflow-react version ${pack.version}`);
+
+  process.exit(0);
+}
+
+if (config) {
+  config = path.resolve(process.cwd(), config);
+} else
+  try {
+    fs.statSync(`${root}/wfr.config.js`);
+    config = `${root}/wfr.config.js`;
+  } catch (e) {
+    // File in default path not exist
+  }
+
+const configBase = {
+  input,
+  output,
+  source,
+  prefetch,
+  // Preserve original path
+  __dirname: path.dirname(config || root)
+};
+
+if (config) {
+  // Will throw an error if file not exist
+  config = Object.assign(configBase, require(config));
+} else {
+  config = configBase;
+}
+
+// Validate config.output schema
+if (typeof config.prefetch != "boolean") {
+  throw TypeError("config.prefetch must be a boolean");
+}
+if (typeof config.input != "string") {
+  throw TypeError("config.input must be a string");
+}
+if (typeof config.output == "string") {
+  config.output = {
+    public: `${config.output}/public`,
+    src: `${config.output}/src`,
+    server: `${config.output}/server`,
+  };
+}
+if (typeof config.output != "object") {
+  throw TypeError("config.output must be an object");
+}
+if (typeof config.output.public != "string") {
+  throw TypeError("config.output.public must be a string");
+}
+if (typeof config.output.src == "string") {
+  config.output.src = {
+    scripts: `${config.output.src}/scripts`,
+    styles: `${config.output.src}/styles`,
+    views: `${config.output.src}/views`,
+    components: `${config.output.src}/components`,
+    meta: `${config.output.src}/meta`,
+    controllers: `${config.output.src}/controllers`,
+    root: config.output.src,
+  };
+}
+if (typeof config.output.src != "object") {
+  throw TypeError("config.output.src must be an object or a string");
+}
+if (typeof config.output.src != "object") {
+  throw TypeError("config.output.src must be an object");
+}
+if (typeof config.output.src.scripts != "string") {
+  throw TypeError("config.output.src.scripts must be a string");
+}
+if (typeof config.output.src.styles != "string") {
+  throw TypeError("config.output.src.styles must be a string");
+}
+if (typeof config.output.src.views != "string") {
+  throw TypeError("config.output.src.views must be a string");
+}
+if (typeof config.output.src.components != "string") {
+  throw TypeError("config.output.src.components must be a string");
+}
+if (typeof config.output.src.meta != "string") {
+  throw TypeError("config.output.src.meta must be a string");
+}
+if (typeof config.output.src.controllers != "string") {
+  throw TypeError("config.output.src.controllers must be a string");
+}
+if (typeof config.source != "string") {
+  throw TypeError("config.source must be a string");
+}
+
+config.input = path.resolve(config.__dirname, config.input);
+config.output = {
+  public: path.resolve(config.__dirname, config.output.public),
+  src: {
+    scripts: path.resolve(config.__dirname, config.output.src.scripts),
+    styles: path.resolve(config.__dirname, config.output.src.styles),
+    views: path.resolve(config.__dirname, config.output.src.views),
+    components: path.resolve(config.__dirname, config.output.src.components),
+    meta: path.resolve(config.__dirname, config.output.src.meta),
+    controllers: path.resolve(config.__dirname, config.output.src.controllers),
+    root: path.resolve(config.__dirname, config.output.src.root),
+  }
+};
+
+transpile(config).catch(errs => {
+  errs = [].concat(errs);
+
+  errs.forEach(err => {
+    console.error(err);
+  });
+});
