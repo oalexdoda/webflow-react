@@ -8,11 +8,11 @@
 
 ## Installation
 
-`$ npm install webflow-react -g`
+`$ npm install webflow-react --save-dev`
 
 ## Getting Started
 
-1. Install *Webflow React from Abruptive* by running the command above;
+1. Install *Webflow React from Abruptive* as a dev dependency;
 2. Setup your React project (e.g. by using create-react-app);
 3. Export your Webflow site and add the files under `/.webflow` in your project;
 4. Run the `webflow-react` command in your project root.
