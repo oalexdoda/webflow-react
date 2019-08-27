@@ -1,6 +1,6 @@
 # Overview
 
-*Webflow React from Abruptive* is a CLI tool that helps designers & developers convert their Webflow projects to React. Inspired by Appfairy (Eytan Manor), the library is a continuation of Eythan's work, to provide an easier way to convert Webflow to React JS.
+*Webflow React from Abruptive* is a CLI tool that helps designers & developers convert their Webflow projects to React.
 
 ## Requirements
 
@@ -136,19 +136,11 @@ Webflow React supports the following CLI options:
 - **--output/--out**
 - **--config**
 
-## More Resources
-
-To learn more about how *Webflow React from Abruptive* works, check out the following resources provided by Eythan Manor for Appfairy, the original library Webflow React is based on:
-
-- [Medium blog post](https://medium.com/@eytanmanor/how-to-create-a-react-app-out-of-a-webflow-project-309b696a0533) - An introduction to Eythan's Appfairy and the motives behind it.
-
-- [YouTube video](https://www.youtube.com/watch?v=6hJe6pZld0o) - Eythan walking through Appfairy and an implementation of an example app.
-
-- [Example app](https://github.com/DAB0mB/Appfairy/tree/master/examples/prefetch) - An example for a simple app which uses Eythan's Appfairy.
-
-## Disclaimer
+## Disclaimers
 
 Webflow is a registered® trademarks of its respective holders. Its use does not imply any affiliation with or endorsement by them.
+
+Inspired by Appfairy (Eytan Manor), the Webflow React library is a continuation of Eythan's work, to provide an easier way to convert Webflow to React JS.
 
 ## License
 
