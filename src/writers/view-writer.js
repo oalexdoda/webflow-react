@@ -230,11 +230,11 @@ export default () => [
         }
 
         // Apply ignore rules AFTER child elements were plucked
-        $('[af-ignore]').remove();
+        $('[wfr-ignore]').remove();
         // Empty inner HTML
-        $('[af-empty]')
+        $('[wfr-empty]')
             .html('')
-            .attr('af-empty', null);
+            .attr('wfr-empty', null);
 
         this[_].scripts = [];
 

@@ -217,7 +217,7 @@ const transpileHTMLFile = (() => {
             source: config.source
         });
 
-        // setScripts(scriptWriter, $head, $)
+        setScripts(scriptWriter, $head, $);
 
         setStyles(viewWriter, styleWriter, $head, $, config.output.src.styles);
         setHTML(viewWriter, $body, $);
@@ -254,15 +254,15 @@ const makePublicDir = (() => {
     };
 })();
 
-// const setScripts = (scriptWriter, $head) => {
-//   const $scripts = $head.find('script[type="text/javascript"]')
+const setScripts = (scriptWriter, $head) => {
+    const $scripts = $head.find('script[type="text/javascript"]');
 
-//   $scripts.each((i, script) => {
-//     const $script = $head.find(script)
+    $scripts.each((i, script) => {
+        const $script = $head.find(script);
 
-//     scriptWriter.setScript($script.attr('src'), $script.html())
-//   })
-// }
+        scriptWriter.setScript($script.attr('src'), $script.html());
+    });
+};
 
 const setStyles = (viewWriter, styleWriter, $head, _, stylesDir) => {
     let $styles;
@@ -864,9 +864,9 @@ export default () => [
         }
 
         // Apply ignore rules AFTER child elements were plucked
-        $('[af-ignore]').remove();
+        $('[wfr-ignore]').remove();
         // Empty inner HTML
-        $('[af-empty]').html('').attr('af-empty', null);
+        $('[wfr-empty]').html('').attr('wfr-empty', null);
 
         this[_].scripts = [];
 

@@ -121,7 +121,7 @@ const transpileHTMLFile = async (
         source: config.source,
     });
 
-    // setScripts(scriptWriter, $head, $)
+    setScripts(scriptWriter, $head, $);
 
     setStyles(viewWriter, styleWriter, $head, $, config.output.src.styles);
     setHTML(viewWriter, $body, $);
@@ -152,15 +152,15 @@ const makePublicDir = async (config, publicSubDirs) => {
     return relativePaths;
 };
 
-// const setScripts = (scriptWriter, $head) => {
-//   const $scripts = $head.find('script[type="text/javascript"]')
+const setScripts = (scriptWriter, $head) => {
+    const $scripts = $head.find('script[type="text/javascript"]');
 
-//   $scripts.each((i, script) => {
-//     const $script = $head.find(script)
+    $scripts.each((i, script) => {
+        const $script = $head.find(script);
 
-//     scriptWriter.setScript($script.attr('src'), $script.html())
-//   })
-// }
+        scriptWriter.setScript($script.attr('src'), $script.html());
+    });
+};
 
 const setStyles = (viewWriter, styleWriter, $head, _, stylesDir) => {
     let $styles;
