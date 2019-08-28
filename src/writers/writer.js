@@ -1,7 +1,7 @@
 class Writer {
-  write() {
-    throw Error('Writer.write() must be implemented')
-  }
+    write() {
+        throw Error('Writer.write() must be implemented');
+    }
 }
 
-export default Writer
+export default Writer;

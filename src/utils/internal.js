@@ -1,47 +1,50 @@
-const Internal = (_) => {
-  if (typeof _ != 'symbol') {
-    throw TypeError('Accessor must me a symbol')
-  }
-
-  return (Klass) => {
-    if (typeof Klass != 'function') {
-      throw TypeError('Provided target is not a class')
+const Internal = _ => {
+    if (typeof _ != 'symbol') {
+        throw TypeError('Accessor must me a symbol');
     }
 
-    const internals = {}
+    return Klass => {
+        if (typeof Klass != 'function') {
+            throw TypeError('Provided target is not a class');
+        }
 
-    Object.defineProperty(Klass.prototype, _, {
-      get() {
-        const _this = { ...internals }
+        const internals = {};
 
-        Object.keys(_this).forEach((key) => {
-          const value = _this[key]
+        Object.defineProperty(Klass.prototype, _, {
+            get() {
+                const _this = { ...internals };
 
-          if (typeof value == 'function') {
-            _this[key] = value.bind(this)
-          }
-        })
+                Object.keys(_this).forEach(key => {
+                    const value = _this[key];
 
-        Object.defineProperty(this, _, {
-          value: _this
-        })
+                    if (typeof value == 'function') {
+                        _this[key] = value.bind(this);
+                    }
+                });
 
-        return _this
-      }
-    })
+                Object.defineProperty(this, _, {
+                    value: _this,
+                });
 
-    Object.getOwnPropertyNames(Klass.prototype).forEach((key) => {
-      if (key[0] != '_') return
+                return _this;
+            },
+        });
 
-      const { value } = Object.getOwnPropertyDescriptor(Klass.prototype, key)
+        Object.getOwnPropertyNames(Klass.prototype).forEach(key => {
+            if (key[0] != '_') return;
 
-      if (typeof value != 'function') return
+            const { value } = Object.getOwnPropertyDescriptor(
+                Klass.prototype,
+                key
+            );
 
-      const publicKey = key.slice(1)
-      internals[publicKey] = value
-      delete Klass.prototype[key]
-    })
-  }
-}
+            if (typeof value != 'function') return;
 
-export default Internal
+            const publicKey = key.slice(1);
+            internals[publicKey] = value;
+            delete Klass.prototype[key];
+        });
+    };
+};
+
+export default Internal;

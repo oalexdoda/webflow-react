@@ -1,8 +1,11 @@
 {
-  "env": { "es6": true, "node": true },
-  "extends": "eslint:recommended",
-  "parser": "babel-eslint",
-  "rules": {
-    "no-console": 0
-  }
+	"env": { 
+		"es6": true, 
+		"node": true 
+	},
+	"extends": "eslint:recommended",
+	"parser": "babel-eslint",
+	"rules": {
+		"no-console": 0
+	}
 }

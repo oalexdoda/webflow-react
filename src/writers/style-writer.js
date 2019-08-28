@@ -1,155 +1,161 @@
-import CleanCSS from 'clean-css'
-import fetch from 'node-fetch'
-import path from 'path'
-import { fs, mkdirp } from '../libs'
-import Writer from './writer'
+import CleanCSS from 'clean-css';
+import fetch from 'node-fetch';
+import path from 'path';
+import { fs, mkdirp } from '../libs';
+import Writer from './writer';
 
 import {
-  Internal,
-  escape,
-  freeText,
-  freeLint,
-  padLeft,
-  requireText,
-} from '../utils'
+    Internal,
+    escape,
+    freeText,
+    freeLint,
+    padLeft,
+    requireText,
+} from '../utils';
 
-const _ = Symbol('_StyleWriter')
+const _ = Symbol('_StyleWriter');
 const cleanCSS = new CleanCSS({
-  rebaseTo: '..'
-})
+    rebaseTo: '..',
+});
 
 @Internal(_)
 class StyleWriter extends Writer {
-  get styles() {
-    return this[_].styles.slice()
-  }
-
-  get prefetch() {
-    return this[_].prefetch
-  }
-
-  set prefetch(prefetch) {
-    return this[_].prefetch = !!prefetch
-  }
-
-  get baseUrl() {
-    return this[_].baseUrl
-  }
-
-  set baseUrl(baseUrl) {
-    this[_].baseUrl = String(baseUrl)
-  }
-
-  get source() {
-    return this[_].source
-  }
-
-  set source(source) {
-    this[_].source = String(source)
-  }
-
-  constructor(options = {}) {
-    super()
-
-    this[_].styles = []
-
-    this.baseUrl = options.baseUrl
-    this.prefetch = options.prefetch
-    this.source = options.srouce
-  }
-
-  async write(dir, options) {
-    await mkdirp(dir)
-
-    options = {
-      ...options,
-      prefetch: this.prefetch,
+    get styles() {
+        return this[_].styles.slice();
     }
 
-    const indexFilePath = `${dir}/index.js`
-    const childFilePaths = [indexFilePath]
-
-    if (!options.prefetch) {
-      await fs.writeFile(indexFilePath, this[_].composeStyleLoader())
-      return childFilePaths
+    get prefetch() {
+        return this[_].prefetch;
     }
 
-    const styleFileNames = this.styles.map((style, index, { length }) => {
-      const fileName = padLeft(index, length / 10 + 1, 0) + '.css'
-      const filePath = `${dir}/${fileName}`
-      childFilePaths.push(filePath)
-
-      return fileName
-    })
-
-    const fetchingStyles = this.styles.map(async (style, index) => {
-      const styleFileName = styleFileNames[index]
-
-      const sheet = style.type == 'sheet'
-        ? style.body
-        : /^http/.test(style.body)
-          ? await fetch(style.body).then(res => res.text())
-          : await requireText.promise(`${this.baseUrl}/${style.body}`)
-
-      return fs.writeFile(`${dir}/${styleFileName}`, this[_].transformSheet(sheet))
-    })
-
-    const stylesIndexContent = styleFileNames.map((styleFileName) => {
-      return `import './${styleFileName}'`
-    }).join('\n')
-
-    const writingIndex = fs.writeFile(
-      indexFilePath,
-      freeLint(stylesIndexContent),
-    )
-
-    await Promise.all([
-      ...fetchingStyles,
-      writingIndex,
-    ])
-
-    return childFilePaths
-  }
-
-  setStyle(href, content) {
-    let type
-    let body
-
-    if (href) {
-      type = 'href'
-      body = /^\w+:\/\//.test(href) ? href : path.resolve('/', href)
-    }
-    else {
-      type = 'sheet'
-      body = content
+    set prefetch(prefetch) {
+        return (this[_].prefetch = !!prefetch);
     }
 
-    const exists = this[_].styles.some((style) => {
-      return style.body == body
-    })
-
-    if (!exists) {
-      this[_].styles.push({ type, body })
+    get baseUrl() {
+        return this[_].baseUrl;
     }
-  }
 
-  _composeStyleLoader() {
-    this[_].styles.forEach((style) => {
-      if (style.type == 'sheet') {
-        style.body = this[_].transformSheet(style.body)
-      }
-    })
+    set baseUrl(baseUrl) {
+        this[_].baseUrl = String(baseUrl);
+    }
 
-    const styles = this[_].styles.map((style) => {
-      return freeText(`
+    get source() {
+        return this[_].source;
+    }
+
+    set source(source) {
+        this[_].source = String(source);
+    }
+
+    constructor(options = {}) {
+        super();
+
+        this[_].styles = [];
+
+        this.baseUrl = options.baseUrl;
+        this.prefetch = options.prefetch;
+        this.source = options.srouce;
+    }
+
+    async write(dir, options) {
+        await mkdirp(dir);
+
+        options = {
+            ...options,
+            prefetch: this.prefetch,
+        };
+
+        const indexFilePath = `${dir}/index.js`;
+        const childFilePaths = [indexFilePath];
+
+        if (!options.prefetch) {
+            await fs.writeFile(indexFilePath, this[_].composeStyleLoader());
+            return childFilePaths;
+        }
+
+        const styleFileNames = this.styles.map((style, index, { length }) => {
+            const fileName = padLeft(index, length / 10 + 1, 0) + '.css';
+            const filePath = `${dir}/${fileName}`;
+            childFilePaths.push(filePath);
+
+            return fileName;
+        });
+
+        const fetchingStyles = this.styles.map(async (style, index) => {
+            const styleFileName = styleFileNames[index];
+
+            const sheet =
+                style.type == 'sheet'
+                    ? style.body
+                    : /^http/.test(style.body)
+                    ? await fetch(style.body).then(res => res.text())
+                    : await requireText.promise(
+                          `${this.baseUrl}/${style.body}`
+                      );
+
+            return fs.writeFile(
+                `${dir}/${styleFileName}`,
+                this[_].transformSheet(sheet)
+            );
+        });
+
+        const stylesIndexContent = styleFileNames
+            .map(styleFileName => {
+                return `import './${styleFileName}'`;
+            })
+            .join('\n');
+
+        const writingIndex = fs.writeFile(
+            indexFilePath,
+            freeLint(stylesIndexContent)
+        );
+
+        await Promise.all([...fetchingStyles, writingIndex]);
+
+        return childFilePaths;
+    }
+
+    setStyle(href, content) {
+        let type;
+        let body;
+
+        if (href) {
+            type = 'href';
+            body = /^\w+:\/\//.test(href) ? href : path.resolve('/', href);
+        } else {
+            type = 'sheet';
+            body = content;
+        }
+
+        const exists = this[_].styles.some(style => {
+            return style.body == body;
+        });
+
+        if (!exists) {
+            this[_].styles.push({ type, body });
+        }
+    }
+
+    _composeStyleLoader() {
+        this[_].styles.forEach(style => {
+            if (style.type == 'sheet') {
+                style.body = this[_].transformSheet(style.body);
+            }
+        });
+
+        const styles = this[_].styles
+            .map(style => {
+                return freeText(`
         {
           type: '${style.type}',
           body: '${escape(style.body, "'")}',
         },
-      `)
-    }).join('\n')
+      `);
+            })
+            .join('\n');
 
-    return freeLint(`
+        return freeLint(`
       const styles = [
         ==>${styles}<==
       ]
@@ -182,21 +188,21 @@ class StyleWriter extends Writer {
 
         return loading
       })
-    `)
-  }
+    `);
+    }
 
-  // Will minify and encapsulate classes
-  _transformSheet(sheet) {
-    sheet = cleanCSS.minify(sheet).styles
+    // Will minify and encapsulate classes
+    _transformSheet(sheet) {
+        sheet = cleanCSS.minify(sheet).styles;
 
-    // Make URLs absolute so webpack won't throw any errors
-    return sheet.replace(/url\(([^)]+)\)/g, (match, url) => {
-      if (/^(.+):\/\//.test(url)) return match
+        // Make URLs absolute so webpack won't throw any errors
+        return sheet.replace(/url\(([^)]+)\)/g, (match, url) => {
+            if (/^(.+):\/\//.test(url)) return match;
 
-      url = path.resolve('/', url)
-      return `url(${url})`
-    })
-  }
+            url = path.resolve('/', url);
+            return `url(${url})`;
+        });
+    }
 }
 
-export default StyleWriter
+export default StyleWriter;

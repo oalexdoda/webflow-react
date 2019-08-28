@@ -118,137 +118,140 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 const defaultPublicSubFolders = ['css', 'fonts', 'images', 'js'];
 
 const transpile = (() => {
-	var _ref = _asyncToGenerator(function* (config) {
-		let inputFiles;
-		let outputFiles = [];
-		try {
-			yield Promise.all([_libs__WEBPACK_IMPORTED_MODULE_3__["fs"].readdir(config.input).then(function (files) {
-				inputFiles = files;
-			}), _git__WEBPACK_IMPORTED_MODULE_2__["default"].removeWFRFiles(config).then(function (files) {
-				outputFiles.push(...files);
-			})]);
-		} catch (e) {
-			console.log(e);
-		}
+    var _ref = _asyncToGenerator(function* (config) {
+        let inputFiles;
+        let outputFiles = [];
+        try {
+            yield Promise.all([_libs__WEBPACK_IMPORTED_MODULE_3__["fs"].readdir(config.input).then(function (files) {
+                inputFiles = files;
+            }), _git__WEBPACK_IMPORTED_MODULE_2__["default"].removeWFRFiles(config).then(function (files) {
+                outputFiles.push(...files);
+            })]);
+        } catch (e) {
+            console.log(e);
+        }
 
-		const folders = inputFiles.filter(function (file) {
-			return !path__WEBPACK_IMPORTED_MODULE_1___default.a.extname(file).length && !defaultPublicSubFolders.includes(file);
-		});
-		try {
-			yield Promise.all(folders.map(function (folder) {
-				return _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].readdir(`${config.input}/${folder}`).then(function (files) {
-					inputFiles = [...(inputFiles || []), ...(files || []).map(function (file) {
-						return `${folder}/${file}`;
-					})];
-				});
-			}));
-		} catch (e) {
-			console.log(e);
-		}
-		const htmlFiles = inputFiles.filter(function (file) {
-			return path__WEBPACK_IMPORTED_MODULE_1___default.a.extname(file) == '.html';
-		});
+        const folders = inputFiles.filter(function (file) {
+            return !path__WEBPACK_IMPORTED_MODULE_1___default.a.extname(file).length && !defaultPublicSubFolders.includes(file);
+        });
+        try {
+            yield Promise.all(folders.map(function (folder) {
+                return _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].readdir(`${config.input}/${folder}`).then(function (files) {
+                    inputFiles = [...(inputFiles || []), ...(files || []).map(function (file) {
+                        return `${folder}/${file}`;
+                    })];
+                });
+            }));
+        } catch (e) {
+            console.log(e);
+        }
+        const htmlFiles = inputFiles.filter(function (file) {
+            return path__WEBPACK_IMPORTED_MODULE_1___default.a.extname(file) == '.html';
+        });
 
-		const publicSubDirs = inputFiles.filter(function (file) {
-			return !path__WEBPACK_IMPORTED_MODULE_1___default.a.extname(file) && defaultPublicSubFolders.includes(file);
-		});
+        const publicSubDirs = inputFiles.filter(function (file) {
+            return !path__WEBPACK_IMPORTED_MODULE_1___default.a.extname(file) && defaultPublicSubFolders.includes(file);
+        });
 
-		const scriptWriter = new _writers__WEBPACK_IMPORTED_MODULE_4__["ScriptWriter"]({
-			baseUrl: config.input,
-			prefetch: config.prefetch
-		});
+        const scriptWriter = new _writers__WEBPACK_IMPORTED_MODULE_4__["ScriptWriter"]({
+            baseUrl: config.input,
+            prefetch: config.prefetch
+        });
 
-		const styleWriter = new _writers__WEBPACK_IMPORTED_MODULE_4__["StyleWriter"]({
-			baseUrl: config.input,
-			prefetch: config.prefetch,
-			source: config.srouce
-		});
+        const styleWriter = new _writers__WEBPACK_IMPORTED_MODULE_4__["StyleWriter"]({
+            baseUrl: config.input,
+            prefetch: config.prefetch,
+            source: config.srouce
+        });
 
-		const transpilingHTMLFiles = htmlFiles.map(function (htmlFile) {
-			return transpileHTMLFile(config, htmlFile, scriptWriter, styleWriter);
-		});
-		const viewWriters = yield Promise.all(transpilingHTMLFiles);
-		const writingFiles = Promise.all([_writers__WEBPACK_IMPORTED_MODULE_4__["ViewWriter"].writeAll(viewWriters, config.output.src.views, config.output.src.components, config.output.src.meta, config.output.src.styles, config.output.src.controllers).then(function (paths) {
-			return outputFiles.push(...paths);
-		}),
-		// scriptWriter.write(
-		//   config.output.src.scripts
-		// ).then((paths) => outputFiles.push(...paths)),
-		styleWriter.write(config.output.src.styles).then(function (paths) {
-			return outputFiles.push(...paths);
-		})]);
+        const transpilingHTMLFiles = htmlFiles.map(function (htmlFile) {
+            return transpileHTMLFile(config, htmlFile, scriptWriter, styleWriter);
+        });
+        const viewWriters = yield Promise.all(transpilingHTMLFiles);
+        const writingFiles = Promise.all([_writers__WEBPACK_IMPORTED_MODULE_4__["ViewWriter"].writeAll(viewWriters, config.output.src.views, config.output.src.components, config.output.src.meta, config.output.src.styles, config.output.src.controllers).then(function (paths) {
+            return outputFiles.push(...paths);
+        }),
+        // scriptWriter.write(
+        //   config.output.src.scripts
+        // ).then((paths) => outputFiles.push(...paths)),
+        styleWriter.write(config.output.src.styles).then(function (paths) {
+            return outputFiles.push(...paths);
+        })]);
 
-		const makingPublicDir = makePublicDir(config, publicSubDirs).then(function (paths) {
-			return outputFiles.push(...paths);
-		});
-		try {
-			yield Promise.all([writingFiles, makingPublicDir]);
-		} catch (e) {
-			console.log(e);
-		}
+        const makingPublicDir = makePublicDir(config, publicSubDirs).then(function (paths) {
+            return outputFiles.push(...paths);
+        });
+        try {
+            yield Promise.all([writingFiles, makingPublicDir]);
+        } catch (e) {
+            console.log(e);
+        }
 
-		return _git__WEBPACK_IMPORTED_MODULE_2__["default"].add(outputFiles, config).then(function (files) {
-			return _git__WEBPACK_IMPORTED_MODULE_2__["default"].commit(files, 'Updated');
-		});
-	});
+        return _git__WEBPACK_IMPORTED_MODULE_2__["default"].add(outputFiles, config).then(function (files) {
+            return _git__WEBPACK_IMPORTED_MODULE_2__["default"].commit(files, 'Updated');
+        });
+    });
 
-	return function transpile(_x) {
-		return _ref.apply(this, arguments);
-	};
+    return function transpile(_x) {
+        return _ref.apply(this, arguments);
+    };
 })();
 
 const transpileHTMLFile = (() => {
-	var _ref2 = _asyncToGenerator(function* (config, htmlFile, scriptWriter, styleWriter) {
-		const html = (yield _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].readFile(`${config.input}/${htmlFile}`)).toString();
-		const $ = cheerio__WEBPACK_IMPORTED_MODULE_0___default.a.load(html);
-		const $head = $('head');
-		if (!!scriptWriter && !!styleWriter) {
-			// pass
-		}
-		const $body = $('body');
-		const viewWriter = new _writers__WEBPACK_IMPORTED_MODULE_4__["ViewWriter"]({
-			name: htmlFile.split('/')[htmlFile.split('/').length - 1].split('.').slice(0, -1).join('.'),
-			baseUrl: config.baseUrl,
-			parent: htmlFile.split('/')[0] === htmlFile ? null : htmlFile.split('/')[0],
-			isComponent: false,
-			source: config.source
-		});
+    var _ref2 = _asyncToGenerator(function* (config, htmlFile, scriptWriter, styleWriter) {
+        const html = (yield _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].readFile(`${config.input}/${htmlFile}`)).toString();
+        const $ = cheerio__WEBPACK_IMPORTED_MODULE_0___default.a.load(html);
+        const $head = $('head');
 
-		// setScripts(scriptWriter, $head, $)
+        if (!!scriptWriter && !!styleWriter) {
+            // pass
+        }
 
-		setStyles(viewWriter, styleWriter, $head, $, config.output.src.styles);
-		setHTML(viewWriter, $body, $);
+        const $body = $('body');
+        const splitter = htmlFile.split('/');
+        const viewWriter = new _writers__WEBPACK_IMPORTED_MODULE_4__["ViewWriter"]({
+            name: splitter[htmlFile.split('/').length - 1].split('.').slice(0, -1).join('.'),
+            baseUrl: config.baseUrl,
+            parent: htmlFile.split('/')[0] === htmlFile ? null : htmlFile.split('/')[0],
+            isComponent: false,
+            source: config.source
+        });
 
-		return viewWriter;
-	});
+        // setScripts(scriptWriter, $head, $)
 
-	return function transpileHTMLFile(_x2, _x3, _x4, _x5) {
-		return _ref2.apply(this, arguments);
-	};
+        setStyles(viewWriter, styleWriter, $head, $, config.output.src.styles);
+        setHTML(viewWriter, $body, $);
+
+        return viewWriter;
+    });
+
+    return function transpileHTMLFile(_x2, _x3, _x4, _x5) {
+        return _ref2.apply(this, arguments);
+    };
 })();
 
 const makePublicDir = (() => {
-	var _ref3 = _asyncToGenerator(function* (config, publicSubDirs) {
-		const publicDir = config.output.public;
-		yield Promise.all(publicSubDirs.map(function (publicSubDir) {
-			return Object(_libs__WEBPACK_IMPORTED_MODULE_3__["ncp"])(`${config.input}/${publicSubDir}`, `${publicDir}/${publicSubDir}`);
-		}));
+    var _ref3 = _asyncToGenerator(function* (config, publicSubDirs) {
+        const publicDir = config.output.public;
+        yield Promise.all(publicSubDirs.map(function (publicSubDir) {
+            return Object(_libs__WEBPACK_IMPORTED_MODULE_3__["ncp"])(`${config.input}/${publicSubDir}`, `${publicDir}/${publicSubDir}`);
+        }));
 
-		// Resolving relative paths
-		const filePaths = yield Object(_libs__WEBPACK_IMPORTED_MODULE_3__["reread"])(config.input);
+        // Resolving relative paths
+        const filePaths = yield Object(_libs__WEBPACK_IMPORTED_MODULE_3__["reread"])(config.input);
 
-		const relativePaths = filePaths.map(function (filePath) {
-			const relativePath = path__WEBPACK_IMPORTED_MODULE_1___default.a.relative(config.input, filePath);
+        const relativePaths = filePaths.map(function (filePath) {
+            const relativePath = path__WEBPACK_IMPORTED_MODULE_1___default.a.relative(config.input, filePath);
 
-			return `${publicDir}/${relativePath}`;
-		});
+            return `${publicDir}/${relativePath}`;
+        });
 
-		return relativePaths;
-	});
+        return relativePaths;
+    });
 
-	return function makePublicDir(_x6, _x7) {
-		return _ref3.apply(this, arguments);
-	};
+    return function makePublicDir(_x6, _x7) {
+        return _ref3.apply(this, arguments);
+    };
 })();
 
 // const setScripts = (scriptWriter, $head) => {
@@ -262,34 +265,34 @@ const makePublicDir = (() => {
 // }
 
 const setStyles = (viewWriter, styleWriter, $head, _, stylesDir) => {
-	let $styles;
+    let $styles;
 
-	$styles = $head.find('link[rel="stylesheet"][type="text/css"]');
+    $styles = $head.find('link[rel="stylesheet"][type="text/css"]');
 
-	$styles.each((i, style) => {
-		const $style = $head.find(style);
+    $styles.each((i, style) => {
+        const $style = $head.find(style);
 
-		viewWriter.setStyle($style.attr('href'), $style.html(), stylesDir);
-		styleWriter.setStyle($style.attr('href'), $style.html());
-	});
+        viewWriter.setStyle($style.attr('href'), $style.html(), stylesDir);
+        styleWriter.setStyle($style.attr('href'), $style.html());
+    });
 
-	$styles = $head.find('style');
+    $styles = $head.find('style');
 
-	$styles.each((i, style) => {
-		const $style = $head.find(style);
+    $styles.each((i, style) => {
+        const $style = $head.find(style);
 
-		viewWriter.setStyle($style.attr('href'), $style.html(), stylesDir);
-		styleWriter.setStyle($style.attr('href'), $style.html());
-	});
+        viewWriter.setStyle($style.attr('href'), $style.html(), stylesDir);
+        styleWriter.setStyle($style.attr('href'), $style.html());
+    });
 };
 
 const setHTML = (viewWriter, $body, $) => {
-	// Create a wrap around $body so we can inherit its style without actually
-	// using a <body> tag
-	const $div = $('<div>');
-	$div.html($body.html());
-	$div.attr($body.attr());
-	viewWriter.html = $.html($div);
+    // Create a wrap around $body so we can inherit its style without actually
+    // using a <body> tag
+    const $div = $('<div>');
+    $div.html($body.html());
+    $div.attr($body.attr());
+    viewWriter.html = $.html($div);
 };
 
 /***/ }),
@@ -326,131 +329,132 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 // import { fs } from "./libs";
 
-// attempt at supporting windows by monkey patching path.relative
-// to prevent backslashes
+// Attempt at supporting windows by monkey patching path.relative to prevent backslashes.
 const orPathRel = path__WEBPACK_IMPORTED_MODULE_1___default.a.relative;
 path__WEBPACK_IMPORTED_MODULE_1___default.a.relative = (from, to) => orPathRel(from, to).replace(/\\/gi, '/');
 
 // Will add given files and will ignore those who aren't exist
 const add = (() => {
-	var _ref = _asyncToGenerator(function* (files, config) {
-		const { stdout: root } = yield execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['rev-parse', '--show-toplevel']);
+    var _ref = _asyncToGenerator(function* (files, config) {
+        const { stdout: root } = yield execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['rev-parse', '--show-toplevel']);
 
-		files = files.map(function (file) {
-			return path__WEBPACK_IMPORTED_MODULE_1___default.a.resolve(root, file);
-		});
+        files = files.map(function (file) {
+            return path__WEBPACK_IMPORTED_MODULE_1___default.a.resolve(root, file);
+        });
 
-		let unstaged = yield Promise.all([execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['diff', '--name-only']), execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['ls-files', '--others', '--exclude-standard'])]).then(function (results) {
-			return results.reduce(function (unstaged, { stdout }) {
-				return unstaged.concat(stdout.split('\n').filter(Boolean));
-			}, []);
-		});
+        let unstaged = yield Promise.all([execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['diff', '--name-only']), execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['ls-files', '--others', '--exclude-standard'])]).then(function (results) {
+            return results.reduce(function (unstaged, { stdout }) {
+                return unstaged.concat(stdout.split('\n').filter(Boolean));
+            }, []);
+        });
 
-		unstaged = unstaged.map(function (file) {
-			return path__WEBPACK_IMPORTED_MODULE_1___default.a.resolve(root, file);
-		});
-		files = files.filter(function (file) {
-			return unstaged.includes(file);
-		});
-		yield execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['add', ...files, `${config.output.src.root}/routes.js`, config.output.src.views, config.output.src.components, config.output.src.styles, config.output.public]);
+        unstaged = unstaged.map(function (file) {
+            return path__WEBPACK_IMPORTED_MODULE_1___default.a.resolve(root, file);
+        });
+        files = files.filter(function (file) {
+            return unstaged.includes(file);
+        });
 
-		return [...files, `${config.output.src.root}/routes.js`, config.output.src.views, config.output.src.components, config.output.src.styles, config.output.public];
-	});
+        yield execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['add', ...files, `${config.output.src.root}/routes.js`, config.output.src.views, config.output.src.components, config.output.src.styles, config.output.public]);
 
-	return function add(_x, _x2) {
-		return _ref.apply(this, arguments);
-	};
+        return [...files, `${config.output.src.root}/routes.js`, config.output.src.views, config.output.src.components, config.output.src.styles, config.output.public];
+    });
+
+    return function add(_x, _x2) {
+        return _ref.apply(this, arguments);
+    };
 })();
 
 // Will commit changes, and if files not exist, will print status
 const commit = (files, message, stdio = 'inherit') => {
-	if (files && files.length) try {
-		return execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['commit', '-m', `Webflow React: ${message}`, '--allow-empty'], {
-			stdio
-		});
-	} catch (e) {
-		// Probably no changes were made
-	}
+    if (files && files.length) try {
+        return execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['commit', '-m', `Webflow React: ${message}`, '--allow-empty'], {
+            stdio
+        });
+    } catch (e) {
+        // Probably no changes were made
+    }
 
-	return execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['status'], {
-		stdio
-	});
+    return execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['status'], {
+        stdio
+    });
 };
 
 const removeWFRFiles = (() => {
-	var _ref2 = _asyncToGenerator(function* (config) {
-		const { stdout: diffFiles } = yield execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['diff', '--name-only']);
+    var _ref2 = _asyncToGenerator(function* (config) {
+        const { stdout: diffFiles } = yield execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['diff', '--name-only']);
 
-		if (diffFiles) {
-			// throw Error(
-			//   [
-			//     "Cannot transpile: Your index contains uncommitted changes.",
-			//     "Please commit or stash them."
-			//   ].join("\n")
-			// );
-			console.log(['=========', 'Warning: You have uncommitted changes!', '========='].join('\n'));
-		}
+        if (diffFiles) {
+            // throw Error(
+            //   [
+            //     "Cannot transpile: Your index contains uncommitted changes.",
+            //     "Please commit or stash them."
+            //   ].join("\n")
+            // );
+            console.log(['=========', 'Warning: You have uncommitted changes!', '========='].join('\n'));
+        }
 
-		// let { stderr, stdout: hash } = await execa("git", [
-		//   "log",
-		//   "-1",
-		//   "--format=%H",
-		//   `--grep=webflow-react: Updated`
-		// ]);
+        // let { stderr, stdout: hash } = await execa("git", [
+        //   "log",
+        //   "-1",
+        //   "--format=%H",
+        //   `--grep=webflow-react: Updated`
+        // ]);
 
-		// // Probably git is not initialized
-		// if (stderr) throw Error(stderr);
-		// // No previous migrations found
-		// if (!hash) return [];
+        // // Probably git is not initialized
+        // if (stderr) throw Error(stderr);
+        // // No previous migrations found
+        // if (!hash) return [];
 
-		// List all files but deleted ones
-		// let { stdout: files } = await execa("git", [
-		//   "diff",
-		//   "--name-only",
-		//   "--diff-filter=ACMRTUXB",
-		//   `${hash}~1`,
-		//   hash
-		// ]);
-		// files = files.split("\n").filter(Boolean);
-		// console.log(files)
+        // List all files but deleted ones
+        // let { stdout: files } = await execa("git", [
+        //   "diff",
+        //   "--name-only",
+        //   "--diff-filter=ACMRTUXB",
+        //   `${hash}~1`,
+        //   hash
+        // ]);
+        // files = files.split("\n").filter(Boolean);
+        // console.log(files)
 
-		// const { stdout: root } = await execa("git", ["rev-parse", "--show-toplevel"]);
+        // const { stdout: root } = await execa("git", ["rev-parse", "--show-toplevel"]);
 
-		yield Promise.all([
-		// ...files.map(async file => {
-		//   return fs.unlink(`${root}/${file}`);
-		// }),
-		new Promise(function (res) {
-			return rimraf__WEBPACK_IMPORTED_MODULE_2___default()(`${config.output.src.root}/routes.js`, function () {
-				return res();
-			});
-		}), new Promise(function (res) {
-			return rimraf__WEBPACK_IMPORTED_MODULE_2___default()(config.output.src.views, function () {
-				return res();
-			});
-		}), new Promise(function (res) {
-			return rimraf__WEBPACK_IMPORTED_MODULE_2___default()(config.output.src.components, function () {
-				return res();
-			});
-		}), new Promise(function (res) {
-			return rimraf__WEBPACK_IMPORTED_MODULE_2___default()(config.output.src.styles, function () {
-				return res();
-			});
-		})]);
+        yield Promise.all([
+        // ...files.map(async file => {
+        //   return fs.unlink(`${root}/${file}`);
+        // }),
 
-		// return [...files||[]];
-		return [`${config.output.src.root}/routes.js`, config.output.src.views, config.output.src.components, config.output.src.styles, config.output.public];
-	});
+        new Promise(function (res) {
+            return rimraf__WEBPACK_IMPORTED_MODULE_2___default()(`${config.output.src.root}/routes.js`, function () {
+                return res();
+            });
+        }), new Promise(function (res) {
+            return rimraf__WEBPACK_IMPORTED_MODULE_2___default()(config.output.src.views, function () {
+                return res();
+            });
+        }), new Promise(function (res) {
+            return rimraf__WEBPACK_IMPORTED_MODULE_2___default()(config.output.src.components, function () {
+                return res();
+            });
+        }), new Promise(function (res) {
+            return rimraf__WEBPACK_IMPORTED_MODULE_2___default()(config.output.src.styles, function () {
+                return res();
+            });
+        })]);
 
-	return function removeWFRFiles(_x3) {
-		return _ref2.apply(this, arguments);
-	};
+        // return [...files||[]];
+        return [`${config.output.src.root}/routes.js`, config.output.src.views, config.output.src.components, config.output.src.styles, config.output.public];
+    });
+
+    return function removeWFRFiles(_x3) {
+        return _ref2.apply(this, arguments);
+    };
 })();
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-	add,
-	commit,
-	removeWFRFiles
+    add,
+    commit,
+    removeWFRFiles
 });
 
 /***/ }),
@@ -519,12 +523,12 @@ const unlink = Object(util__WEBPACK_IMPORTED_MODULE_1__["promisify"])(fs__WEBPAC
 const writeFile = Object(util__WEBPACK_IMPORTED_MODULE_1__["promisify"])(fs__WEBPACK_IMPORTED_MODULE_0___default.a.writeFile);
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-  mkdir,
-  readdir,
-  readFile,
-  stat,
-  unlink,
-  writeFile
+    mkdir,
+    readdir,
+    readFile,
+    stat,
+    unlink,
+    writeFile
 });
 
 /***/ }),
@@ -641,9 +645,9 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 let Writer = class Writer {
-  write() {
-    throw Error('Writer.write() must be implemented');
-  }
+    write() {
+        throw Error('Writer.write() must be implemented');
+    }
 };
 
 
@@ -684,14 +688,13 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 const writingFiles = [];
 
-// attempt at supporting windows by monkey patching path.relative
-// to prevent backslashes
+// Attempt at supporting windows by monkey patching path.relative to prevent backslashes.
 const orPathRel = path__WEBPACK_IMPORTED_MODULE_2___default.a.relative;
 path__WEBPACK_IMPORTED_MODULE_2___default.a.relative = (from, to) => orPathRel(from, to).replace(/\\/gi, '/');
 
 
 
-const _ = Symbol("_ViewWriter");
+const _ = Symbol('_ViewWriter');
 const htmltojsx = new htmltojsx__WEBPACK_IMPORTED_MODULE_1___default.a({ createClass: false });
 
 // const flattenChildren = (children = [], flatten = []) => {
@@ -704,23 +707,23 @@ const htmltojsx = new htmltojsx__WEBPACK_IMPORTED_MODULE_1___default.a({ createC
 //   return flatten;
 // };
 
-const adjustImagesToRoot = html => html.replace(/src="/ig, 'src="/');
+const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="/');
 // const removeHtmlFromLinks = (html) => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/ig, '').replace(/href="/ig, 'href="/'))
-const removeHtmlFromLinks = html => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/ig, ''));
+const removeHtmlFromLinks = html => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/gi, ''));
 
 let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])(_), _dec(_class = class ViewWriter extends _writer__WEBPACK_IMPORTED_MODULE_7__["default"] {
-  static writeAll(viewWriters, dir, componentDir, metaDir, stylesDir, ctrlsDir) {
-    return _asyncToGenerator(function* () {
-      yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(dir);
-      yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(componentDir);
-      yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(stylesDir);
-      yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(metaDir);
-      const indexFilePath = `${dir}/index.js`;
-      const helpersFilePath = `${dir}/../helpers.js`;
-      const routesFilePath = `${dir}/../routes.js`;
-      const childFilePaths = [indexFilePath, helpersFilePath, routesFilePath];
-      ctrlsDir = path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, ctrlsDir);
-      const routes = `
+    static writeAll(viewWriters, dir, componentDir, metaDir, stylesDir, ctrlsDir) {
+        return _asyncToGenerator(function* () {
+            yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(dir);
+            yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(componentDir);
+            yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(stylesDir);
+            yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(metaDir);
+            const indexFilePath = `${dir}/index.js`;
+            const helpersFilePath = `${dir}/../helpers.js`;
+            const routesFilePath = `${dir}/../routes.js`;
+            const childFilePaths = [indexFilePath, helpersFilePath, routesFilePath];
+            ctrlsDir = path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, ctrlsDir);
+            const routes = `
 import React from 'react';
 import { Route } from 'react-router-dom';
 import * as Views from './views';
@@ -728,345 +731,343 @@ import * as Views from './views';
 export default () => [
   <Route key="route_index" path="/" component={Views.IndexView} exact />,
   ${viewWriters.map(function (viewWriter) {
-        return `<Route key="route_${viewWriter.className.replace(/view/gi, '')}" path="${viewWriter.parent ? `/${viewWriter.parent}` : ''}/${viewWriter.className.replace(/view/gi, '').split(/(?=[A-Z])/).join('-').toLowerCase()}" component={Views.${viewWriter.className}} exact />`;
-      }).join(",\n  ")}
+                return `<Route key="route_${viewWriter.className.replace(/view/gi, '')}" path="${viewWriter.parent ? `/${viewWriter.parent}` : ''}/${viewWriter.className.replace(/view/gi, '').split(/(?=[A-Z])/).join('-').toLowerCase()}" component={Views.${viewWriter.className}} exact />`;
+            }).join(',\n  ')}
 ]`;
-      const index = viewWriters.map(function (viewWriter) {
-        return `export { default as ${viewWriter.className} } from './${viewWriter.className}'`;
-      }).join("\n");
+            const index = viewWriters.map(function (viewWriter) {
+                return `export { default as ${viewWriter.className} } from './${viewWriter.className}'`;
+            }).join('\n');
 
-      const leanViewWriters = [];
-      // viewWriters = flattenChildren(viewWriters);
+            const leanViewWriters = [];
+            // viewWriters = flattenChildren(viewWriters);
 
-      for (const viewWriter of viewWriters) {
-        if (!leanViewWriters.find(function (vw) {
-          return vw.className === viewWriter.className;
-        })) {
-          leanViewWriters.push(viewWriter);
+            for (const viewWriter of viewWriters) {
+                if (!leanViewWriters.find(function (vw) {
+                    return vw.className === viewWriter.className;
+                })) {
+                    leanViewWriters.push(viewWriter);
+                }
+            }
+            leanViewWriters.forEach((() => {
+                var _ref = _asyncToGenerator(function* (viewWriter) {
+                    const filePaths = yield viewWriter.write(dir, componentDir, metaDir, stylesDir, ctrlsDir);
+                    childFilePaths.push(...filePaths);
+                });
+
+                return function (_x) {
+                    return _ref.apply(this, arguments);
+                };
+            })());
+
+            const writtingRoutes = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(routesFilePath, Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(routes));
+            const writingIndex = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(indexFilePath, Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(index));
+            const writingHelpers = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(helpersFilePath, _raw__WEBPACK_IMPORTED_MODULE_6__["default"].viewHelpers);
+
+            yield Promise.all([writingIndex, writingHelpers, writtingRoutes]);
+            return childFilePaths;
+        })();
+    }
+
+    get baseUrl() {
+        return this[_].baseUrl;
+    }
+
+    set baseUrl(baseUrl) {
+        this[_].baseUrl = String(baseUrl);
+    }
+
+    set isComponent(comp) {
+        this[_].isComponent = comp;
+    }
+
+    get isComponent() {
+        return this[_].isComponent;
+    }
+
+    get children() {
+        return this[_].children.slice();
+    }
+
+    set name(name) {
+        if (!isNaN(Number(name))) {
+            name = statuses__WEBPACK_IMPORTED_MODULE_3___default.a[name];
         }
-      }
-      leanViewWriters.forEach((() => {
-        var _ref = _asyncToGenerator(function* (viewWriter) {
-          const filePaths = yield viewWriter.write(dir, componentDir, metaDir, stylesDir, ctrlsDir);
-          childFilePaths.push(...filePaths);
+
+        const words = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["splitWords"])(name);
+        Object.assign(this[_], {
+            ctrlClassName: words.concat('controller').map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(''),
+            metaClassName: words.concat('meta').map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(''),
+            className: words.concat('view').map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(''),
+            elName: words.map(word => word.toLowerCase()).join('-'),
+            name: words.concat('view').map(word => word.toLowerCase()).join('-')
         });
-
-        return function (_x) {
-          return _ref.apply(this, arguments);
-        };
-      })());
-
-      const writtingRoutes = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(routesFilePath, Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(routes));
-      const writingIndex = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(indexFilePath, Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(index));
-      const writingHelpers = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(helpersFilePath, _raw__WEBPACK_IMPORTED_MODULE_6__["default"].viewHelpers);
-
-      yield Promise.all([writingIndex, writingHelpers, writtingRoutes]);
-      return childFilePaths;
-    })();
-  }
-
-  get baseUrl() {
-    return this[_].baseUrl;
-  }
-
-  set baseUrl(baseUrl) {
-    this[_].baseUrl = String(baseUrl);
-  }
-
-  set isComponent(comp) {
-    this[_].isComponent = comp;
-  }
-
-  get isComponent() {
-    return this[_].isComponent;
-  }
-
-  get children() {
-    return this[_].children.slice();
-  }
-
-  set name(name) {
-    if (!isNaN(Number(name))) {
-      name = statuses__WEBPACK_IMPORTED_MODULE_3___default.a[name];
     }
 
-    const words = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["splitWords"])(name);
-    Object.assign(this[_], {
-      ctrlClassName: words.concat("controller").map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(""),
-      metaClassName: words.concat("meta").map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(""),
-      className: words.concat("view").map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(""),
-      elName: words.map(word => word.toLowerCase()).join("-"),
-      name: words.concat("view").map(word => word.toLowerCase()).join("-")
-    });
-  }
-
-  get name() {
-    return this[_].name;
-  }
-
-  get ctrlClassName() {
-    return this[_].ctrlClassName;
-  }
-
-  get metaClassName() {
-    return this[_].metaClassName;
-  }
-
-  get className() {
-    return this[_].className;
-  }
-
-  get elName() {
-    return this[_].elName;
-  }
-
-  set html(html) {
-    if (!html) {
-      this[_].html = "";
-      this[_].children = [];
-      return;
+    get name() {
+        return this[_].name;
     }
 
-    const children = this[_].children = [];
-    const $ = cheerio__WEBPACK_IMPORTED_MODULE_0___default.a.load(html);
-
-    // console.log(this[_].className, ($("[wfr-c]") || []).length)
-
-    let el = $("[wfr-c]")[0];
-    while (el) {
-
-      const $el = $(el);
-      const elName = $el.attr("wfr-c");
-      const $afEl = $(`<af-${elName}></af-${elName}>`);
-      // const sock = $el.attr("wfr-d");
-      // $afEl.attr("wfr-d", $el.attr("wfr-d"));
-      $el.attr("wfr-c", null);
-      // $el.attr("wfr-d", null);
-      $afEl.insertAfter($el);
-      // if (sock !== null && sock !== undefined) {
-      //   $el.prepend(`<span wfr-d="${sock}">`);
-      //   $el.append('</span>');
-      // }
-      $el.remove();
-
-      const child = new ViewWriter({
-        name: elName,
-        html: $.html($el),
-        baseUrl: this.baseUrl,
-        styles: this.styles,
-        isComponent: true
-      });
-
-      children.push(child);
-      el = $("[wfr-c]")[0];
+    get ctrlClassName() {
+        return this[_].ctrlClassName;
     }
 
-    // Apply ignore rules AFTER child elements were plucked
-    $("[af-ignore]").remove();
-    // Empty inner HTML
-    $("[af-empty]").html("").attr("af-empty", null);
+    get metaClassName() {
+        return this[_].metaClassName;
+    }
 
-    this[_].scripts = [];
+    get className() {
+        return this[_].className;
+    }
 
-    // Set inline scripts. Will be loaded once component has been mounted
-    $("script").each((i, script) => {
-      const $script = $(script);
-      const src = $script.attr("src");
-      const type = $script.attr("type");
+    get elName() {
+        return this[_].elName;
+    }
 
-      // We're only interested in JavaScript script tags
-      if (type && !/javascript/i.test(type)) return;
-
-      if (src) {
-        this[_].scripts.push({
-          type: "src",
-          body: src
-        });
-      } else {
-        this[_].scripts.push({
-          type: "code",
-          body: $script.html()
-        });
-      }
-
-      $script.remove();
-    });
-
-    const $body = $("body");
-    html = $body.html();
-
-    this[_].html = html;
-
-    const sockets = this[_].sockets = [];
-
-    // Find root sockets
-    $("[wfr-d]").each((i, el) => {
-      const $el = $(el);
-      const socketName = $el.attr("wfr-d");
-      sockets.push(socketName);
-
-      $el.attr("wfr-d", null);
-      // Workaround would help identify the closing tag
-      el.tagName += `-wfr-d-${socketName}`;
-    });
-
-    // Attach socket attributes.
-    $('[wfr-a]').each((i, el) => {
-      const $el = $(el);
-      const socketAttrs = $el.attr("wfr-a").split(',');
-
-      socketAttrs.forEach(socketAttr => {
-        sockets.push('%string%' + socketAttr);
-
-        // Workaround to identify socket attributes.
-        $el.attr('wfr-a-' + socketAttr, "{ proxies['" + socketAttr + "'] }");
-      });
-
-      $el.attr("wfr-a", null);
-    });
-
-    // Refetch modified html
-    html = $body.html();
-
-    // Transforming HTML into JSX
-    let jsx = htmltojsx.convert(removeHtmlFromLinks(html)).trim();
-
-    // Bind controller to view
-    this[_].jsx = bindJSX(this, jsx, children);
-  }
-
-  get scripts() {
-    return this[_].scripts ? this[_].scripts.slice() : [];
-  }
-
-  get styles() {
-    return this[_].styles.slice();
-  }
-
-  get html() {
-    return this[_].html;
-  }
-
-  get jsx() {
-    return this[_].jsx;
-  }
-
-  get sockets() {
-    return this[_].sockets && [...this[_].sockets];
-  }
-
-  get source() {
-    return this[_].source;
-  }
-
-  set source(source) {
-    this[_].source = String(source);
-  }
-
-  constructor(options) {
-    super();
-
-    this[_].children = [];
-    this[_].styles = options.styles || [];
-
-    this.name = options.name;
-    this.parent = options.parent;
-    this.isComponent = options.isComponent;
-    this.html = options.html;
-    this.source = options.source;
-  }
-
-  write(dir, componentDir, metaDir, stylesDir, ctrlsDir) {
-    var _this = this;
-
-    return _asyncToGenerator(function* () {
-      const filePath = `${dir}/${_this.className}.js`;
-      const childFilePaths = [filePath];
-      const writingChildren = _this[_].children.map((() => {
-        var _ref2 = _asyncToGenerator(function* (child) {
-          if (!writingFiles.includes(child.className)) {
-            writingFiles.push(child.className);
-            const filePaths = yield child.write(componentDir, componentDir, metaDir, stylesDir, ctrlsDir);
-            childFilePaths.push(...filePaths);
-          }
-        });
-
-        return function (_x2) {
-          return _ref2.apply(this, arguments);
-        };
-      })());
-      const isNestedComponent = dir === componentDir;
-      let writingSelf;
-
-      if (!writingFiles.includes(`${_this.className}.js`)) {
-        try {
-          yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].readFile(`${dir}/${_this.className}.js`);
-        } catch (e) {
-          // pass
-          writingSelf = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${dir}/${_this.className}.js`, _this[_].compose(path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, componentDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, metaDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, stylesDir), ctrlsDir, !isNestedComponent));
+    set html(html) {
+        if (!html) {
+            this[_].html = '';
+            this[_].children = [];
+            return;
         }
-      }
 
-      try {
-        yield Promise.all([...writingChildren, writingSelf]);
-      } catch (e) {
-        console.log(e);
-      }
-      return childFilePaths;
-    })();
-  }
+        const children = this[_].children = [];
+        const $ = cheerio__WEBPACK_IMPORTED_MODULE_0___default.a.load(html);
 
-  setStyle(href, content, stylesDir) {
-    var _this2 = this;
+        // console.log(this[_].className, ($("[wfr-c]") || []).length)
 
-    return _asyncToGenerator(function* () {
-      let type;
-      let body;
+        let el = $('[wfr-c]')[0];
+        while (el) {
+            const $el = $(el);
+            const elName = $el.attr('wfr-c');
+            const $afEl = $(`<af-${elName}></af-${elName}>`);
+            // const sock = $el.attr("wfr-d");
+            // $afEl.attr("wfr-d", $el.attr("wfr-d"));
+            $el.attr('wfr-c', null);
+            // $el.attr("wfr-d", null);
+            $afEl.insertAfter($el);
+            // if (sock !== null && sock !== undefined) {
+            //   $el.prepend(`<span wfr-d="${sock}">`);
+            //   $el.append('</span>');
+            // }
+            $el.remove();
 
-      if (href) {
-        type = "href";
-        body = /^\w+:\/\//.test(href) ? href : path__WEBPACK_IMPORTED_MODULE_2___default.a.resolve("/", href);
-      } else {
-        type = "sheet";
-        body = content;
-      }
+            const child = new ViewWriter({
+                name: elName,
+                html: $.html($el),
+                baseUrl: this.baseUrl,
+                styles: this.styles,
+                isComponent: true
+            });
 
-      const exists = _this2[_].styles.some(function (style) {
-        return style.body == body;
-      });
+            children.push(child);
+            el = $('[wfr-c]')[0];
+        }
 
-      if (!exists) {
-        _this2[_].styles.push({ type, body });
-      }
+        // Apply ignore rules AFTER child elements were plucked
+        $('[af-ignore]').remove();
+        // Empty inner HTML
+        $('[af-empty]').html('').attr('af-empty', null);
 
-      const sheets = _this2[_].styles.map(function ({ type, body }) {
-        return type == "sheet" && body;
-      }).filter(Boolean);
+        this[_].scripts = [];
 
-      let css = "";
+        // Set inline scripts. Will be loaded once component has been mounted
+        $('script').each((i, script) => {
+            const $script = $(script);
+            const src = $script.attr('src');
+            const type = $script.attr('type');
 
-      // css += hrefs.map((href) => {
-      //   return `@import url(${href});`
-      // }).join('\n')
+            // We're only interested in JavaScript script tags
+            if (type && !/javascript/i.test(type)) return;
 
+            if (src) {
+                this[_].scripts.push({
+                    type: 'src',
+                    body: src
+                });
+            } else {
+                this[_].scripts.push({
+                    type: 'code',
+                    body: $script.html()
+                });
+            }
 
-      css += "\n\n";
+            $script.remove();
+        });
 
-      css += sheets.map(function (sheet) {
-        return sheet;
-      }).join("\n\n");
-      if (!stylesDir || !css.length) return true;
-      try {
-        yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(stylesDir);
-        yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${stylesDir}/${_this2.className}.css`, Object(_utils__WEBPACK_IMPORTED_MODULE_8__["escape"])(css.trim()));
-      } catch (e) {
-        console.log(e);
-      }
-    })();
-  }
+        const $body = $('body');
+        html = $body.html();
 
-  _compose(compDir, metaDir, stylesDir, ctrlsDir, shouldHaveStyles = true) {
-    return Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(`
+        this[_].html = html;
+
+        const sockets = this[_].sockets = [];
+
+        // Find root sockets
+        $('[wfr-d]').each((i, el) => {
+            const $el = $(el);
+            const socketName = $el.attr('wfr-d');
+            sockets.push(socketName);
+
+            $el.attr('wfr-d', null);
+            // Workaround would help identify the closing tag
+            el.tagName += `-wfr-d-${socketName}`;
+        });
+
+        // Attach socket attributes.
+        $('[wfr-a]').each((i, el) => {
+            const $el = $(el);
+            const socketAttrs = $el.attr('wfr-a').split(',');
+
+            socketAttrs.forEach(socketAttr => {
+                sockets.push('%string%' + socketAttr);
+
+                // Workaround to identify socket attributes.
+                $el.attr('wfr-a-' + socketAttr, "{ proxies['" + socketAttr + "'] }");
+            });
+
+            $el.attr('wfr-a', null);
+        });
+
+        // Refetch modified html
+        html = $body.html();
+
+        // Transforming HTML into JSX
+        let jsx = htmltojsx.convert(removeHtmlFromLinks(html)).trim();
+
+        // Bind controller to view
+        this[_].jsx = bindJSX(this, jsx, children);
+    }
+
+    get scripts() {
+        return this[_].scripts ? this[_].scripts.slice() : [];
+    }
+
+    get styles() {
+        return this[_].styles.slice();
+    }
+
+    get html() {
+        return this[_].html;
+    }
+
+    get jsx() {
+        return this[_].jsx;
+    }
+
+    get sockets() {
+        return this[_].sockets && [...this[_].sockets];
+    }
+
+    get source() {
+        return this[_].source;
+    }
+
+    set source(source) {
+        this[_].source = String(source);
+    }
+
+    constructor(options) {
+        super();
+
+        this[_].children = [];
+        this[_].styles = options.styles || [];
+
+        this.name = options.name;
+        this.parent = options.parent;
+        this.isComponent = options.isComponent;
+        this.html = options.html;
+        this.source = options.source;
+    }
+
+    write(dir, componentDir, metaDir, stylesDir, ctrlsDir) {
+        var _this = this;
+
+        return _asyncToGenerator(function* () {
+            const filePath = `${dir}/${_this.className}.js`;
+            const childFilePaths = [filePath];
+            const writingChildren = _this[_].children.map((() => {
+                var _ref2 = _asyncToGenerator(function* (child) {
+                    if (!writingFiles.includes(child.className)) {
+                        writingFiles.push(child.className);
+                        const filePaths = yield child.write(componentDir, componentDir, metaDir, stylesDir, ctrlsDir);
+                        childFilePaths.push(...filePaths);
+                    }
+                });
+
+                return function (_x2) {
+                    return _ref2.apply(this, arguments);
+                };
+            })());
+            const isNestedComponent = dir === componentDir;
+            let writingSelf;
+
+            if (!writingFiles.includes(`${_this.className}.js`)) {
+                try {
+                    yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].readFile(`${dir}/${_this.className}.js`);
+                } catch (e) {
+                    // pass
+                    writingSelf = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${dir}/${_this.className}.js`, _this[_].compose(path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, componentDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, metaDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, stylesDir), ctrlsDir, !isNestedComponent));
+                }
+            }
+
+            try {
+                yield Promise.all([...writingChildren, writingSelf]);
+            } catch (e) {
+                console.log(e);
+            }
+            return childFilePaths;
+        })();
+    }
+
+    setStyle(href, content, stylesDir) {
+        var _this2 = this;
+
+        return _asyncToGenerator(function* () {
+            let type;
+            let body;
+
+            if (href) {
+                type = 'href';
+                body = /^\w+:\/\//.test(href) ? href : path__WEBPACK_IMPORTED_MODULE_2___default.a.resolve('/', href);
+            } else {
+                type = 'sheet';
+                body = content;
+            }
+
+            const exists = _this2[_].styles.some(function (style) {
+                return style.body == body;
+            });
+
+            if (!exists) {
+                _this2[_].styles.push({ type, body });
+            }
+
+            const sheets = _this2[_].styles.map(function ({ type, body }) {
+                return type == 'sheet' && body;
+            }).filter(Boolean);
+
+            let css = '';
+
+            // css += hrefs.map((href) => {
+            //   return `@import url(${href});`
+            // }).join('\n')
+
+            css += '\n\n';
+
+            css += sheets.map(function (sheet) {
+                return sheet;
+            }).join('\n\n');
+            if (!stylesDir || !css.length) return true;
+            try {
+                yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(stylesDir);
+                yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${stylesDir}/${_this2.className}.css`, Object(_utils__WEBPACK_IMPORTED_MODULE_8__["escape"])(css.trim()));
+            } catch (e) {
+                console.log(e);
+            }
+        })();
+    }
+
+    _compose(compDir, metaDir, stylesDir, ctrlsDir, shouldHaveStyles = true) {
+        return Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(`
       import React from 'react'
       import { createScope, map, transformProxies } from '../helpers'
       ${shouldHaveStyles ? `import "${stylesDir}/${this.className}.css"` : ''}
@@ -1130,86 +1131,86 @@ export default () => [
 
       export default ${this.className}
     `);
-  }
-
-  _composeStyleImports() {
-    // const hrefs = this[_].styles.map(({ type, body }) => {
-    //   return type == 'href' && body
-    // }).filter(Boolean)
-
-    const sheets = this[_].styles.map(({ type, body }) => {
-      return type == "sheet" && body;
-    }).filter(Boolean);
-
-    let css = "";
-
-    // css += hrefs.map((href) => {
-    //   return `@import url(${href});`
-    // }).join('\n')
-
-    css += "\n\n";
-
-    css += sheets.map(sheet => {
-      return sheet;
-    }).join("\n\n");
-
-    return Object(_utils__WEBPACK_IMPORTED_MODULE_8__["escape"])(css.trim());
-  }
-
-  _composeProxiesDefault() {
-    return this[_].sockets.map(socket => {
-      let defaultType = '[]';
-
-      if (socket.includes('%string%')) {
-        socket = socket.replace('%string%', '');
-        defaultType = "''";
-      }
-
-      return `'${socket}': ` + defaultType + `,`;
-    }).join("\n");
-  }
-
-  _composeChildImports(compDir) {
-    if (!compDir) {
-      compDir = '.';
     }
-    const imported = [];
 
-    const imports = this[_].children.map(child => {
-      if (!imported.includes(child.className)) {
-        imported.push(child.className);
-        return `import ${child.className} from '${compDir}/${child.className}'`;
-      }
-    }).filter(imp => !!imp && imp.length);
+    _composeStyleImports() {
+        // const hrefs = this[_].styles.map(({ type, body }) => {
+        //   return type == 'href' && body
+        // }).filter(Boolean)
 
-    // Line skip
-    imports.push("");
+        const sheets = this[_].styles.map(({ type, body }) => {
+            return type == 'sheet' && body;
+        }).filter(Boolean);
 
-    return imports.join("\n");
-  }
+        let css = '';
 
-  _composeScriptsDeclerations() {
-    return this[_].scripts.map(script => {
-      if (script.type == "src") {
-        return `fetch("${script.body}").then(body => body.text()),`;
-      }
+        // css += hrefs.map((href) => {
+        //   return `@import url(${href});`
+        // }).join('\n')
 
-      const minified = uglify_js__WEBPACK_IMPORTED_MODULE_4___default.a.minify(script.body).code;
-      // Unknown script format ??? fallback to maxified version
-      const code = minified || script.body;
+        css += '\n\n';
 
-      return `Promise.resolve("${Object(_utils__WEBPACK_IMPORTED_MODULE_8__["escape"])(code)}"),`;
-    }).join("\n");
-  }
+        css += sheets.map(sheet => {
+            return sheet;
+        }).join('\n\n');
 
-  _composeScriptsInvocations() {
-    if (!this[_].scripts) return "";
+        return Object(_utils__WEBPACK_IMPORTED_MODULE_8__["escape"])(css.trim());
+    }
 
-    const invoke = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeScope"])("eval(arguments[0])", "window", {
-      script: null
-    });
+    _composeProxiesDefault() {
+        return this[_].sockets.map(socket => {
+            let defaultType = '[]';
 
-    return Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeText"])(`
+            if (socket.includes('%string%')) {
+                socket = socket.replace('%string%', '');
+                defaultType = "''";
+            }
+
+            return `'${socket}': ` + defaultType + `,`;
+        }).join('\n');
+    }
+
+    _composeChildImports(compDir) {
+        if (!compDir) {
+            compDir = '.';
+        }
+        const imported = [];
+
+        const imports = this[_].children.map(child => {
+            if (!imported.includes(child.className)) {
+                imported.push(child.className);
+                return `import ${child.className} from '${compDir}/${child.className}'`;
+            }
+        }).filter(imp => !!imp && imp.length);
+
+        // Line skip
+        imports.push('');
+
+        return imports.join('\n');
+    }
+
+    _composeScriptsDeclerations() {
+        return this[_].scripts.map(script => {
+            if (script.type == 'src') {
+                return `fetch("${script.body}").then(body => body.text()),`;
+            }
+
+            const minified = uglify_js__WEBPACK_IMPORTED_MODULE_4___default.a.minify(script.body).code;
+            // Unknown script format ??? fallback to maxified version
+            const code = minified || script.body;
+
+            return `Promise.resolve("${Object(_utils__WEBPACK_IMPORTED_MODULE_8__["escape"])(code)}"),`;
+        }).join('\n');
+    }
+
+    _composeScriptsInvocations() {
+        if (!this[_].scripts) return '';
+
+        const invoke = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeScope"])('eval(arguments[0])', 'window', {
+            script: null
+        });
+
+        return Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeText"])(`
       scripts.concat(Promise.resolve()).reduce((loaded, loading) => {
         return loaded.then((script) => {
           ==>${invoke}<==
@@ -1218,69 +1219,67 @@ export default () => [
         })
       })
     `);
-  }
+    }
 }) || _class);
 
 
 function camelize(text) {
-  return text.replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
-    return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
-  }).replace(/\s+/g, '');
+    return text.replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
+        return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
+    }).replace(/\s+/g, '');
 }
 
 function bindJSX(self, jsx, children = []) {
-  // DETECT LIST
-  children.forEach((child, index) => {
-    const isList = new RegExp(`(<af-${child.elName} />\\s*){2,}`, "").exec(jsx);
-    if (isList) {
-      self[_].sockets.push(`${camelize(child.className)}List${index}`);
-      jsx = jsx.replace(new RegExp(`(<af-${child.elName} />\\s*){2,}`, ""), `{map(proxies['${camelize(child.className)}List${index}'], props => <React.Fragment ${mergeProps('')}>{props.children ? props.children : null}</React.Fragment>)}`);
-    } else {
+    // DETECT LIST
+    children.forEach((child, index) => {
+        const isList = new RegExp(`(<af-${child.elName} />\\s*){2,}`, '').exec(jsx);
+        if (isList) {
+            self[_].sockets.push(`${camelize(child.className)}List${index}`);
+            jsx = jsx.replace(new RegExp(`(<af-${child.elName} />\\s*){2,}`, ''), `{map(proxies['${camelize(child.className)}List${index}'], props => <React.Fragment ${mergeProps('')}>{props.children ? props.children : null}</React.Fragment>)}`);
+        } else {
+            jsx = jsx.replace(new RegExp(`af-${child.elName}`, 'g'), `${child.className}.Controller {...this.props}`);
 
-      jsx = jsx.replace(new RegExp(`af-${child.elName}`, "g"), `${child.className}.Controller {...this.props}`);
+            jsx = jsx.replace(new RegExp(`(<af-${child.elName} />\\s*)+`, !self[_].isComponent ? 'g' : ''), !self[_].isComponent ? `<${child.className}.Controller {...this.props}/>` : `{map(proxies['${child.className}'], props => <${child.className}.Controller ${mergeProps('')}>{props.children ? props.children : null}</${child.className}.Controller>)}`);
+        }
+    });
 
-      jsx = jsx.replace(new RegExp(`(<af-${child.elName} />\\s*)+`, !self[_].isComponent ? "g" : ""), !self[_].isComponent ? `<${child.className}.Controller {...this.props}/>` : `{map(proxies['${child.className}'], props => <${child.className}.Controller ${mergeProps('')}>{props.children ? props.children : null}</${child.className}.Controller>)}`);
-    }
-  });
+    // ORDER MATTERS
+    // Open close
+    return jsx
+    // Replace attributes
+    .replace(/(wfr-a-)([\w_-]+)=(".*?")/g, (match, base) => match.replace(base, '').replace(/["]+/g, ''))
+    // Open close
+    .replace(/<([\w_-]+)-wfr-d-([\w_-]+)(.*?)>([^]*)<\/\1-wfr-d-\2>/g, (match, el, sock, attrs, children) => {
+        // // attrs.forEach(attr => attr.replace('wfr-a-', ''));
+        // console.log(el);
 
-  // ORDER MATTERS
-  // Open close
-  return jsx
-  // Replace attributes
-  .replace(/(wfr-a-)([\w_-]+)=(".*?")/g, (match, base) => match.replace(base, '').replace(/["]+/g, ''))
-  // Open close
-  .replace(/<([\w_-]+)-wfr-d-([\w_-]+)(.*?)>([^]*)<\/\1-wfr-d-\2>/g, (match, el, sock, attrs, children) => {
-
-    // // attrs.forEach(attr => attr.replace('wfr-a-', ''));
-    // console.log(el);
-
-    return (/<[\w_-]+-wfr-d-[\w_-]+/.test(children) ? `{map(proxies['${sock}'], props => <${el} ${mergeProps(attrs)}>{createScope(props.children, proxies => <React.Fragment>
+        return (/<[\w_-]+-wfr-d-[\w_-]+/.test(children) ? `{map(proxies['${sock}'], props => <${el} ${mergeProps(attrs)}>{createScope(props.children, proxies => <React.Fragment>
                 {props.topelement ? props.topelement() : null}
                 ${bindJSX(self, children)}</React.Fragment>)}</${el}>)}` : `{map(proxies['${sock}'], props => <${el} ${mergeProps(attrs)}>{props.children ? props.children : <React.Fragment>${children}</React.Fragment>}</${el}>)}`
-    );
-  })
-  // Self closing
-  .replace(/<([\w_-]+)-wfr-d-([\w_-]+)(.*?) \/>/g, (match, el, sock, attrs) => `{map(proxies['${sock}'], props => <${el} ${mergeProps(attrs)}>{props.children}</${el}>)}`);
+        );
+    })
+    // Self closing
+    .replace(/<([\w_-]+)-wfr-d-([\w_-]+)(.*?) \/>/g, (match, el, sock, attrs) => `{map(proxies['${sock}'], props => <${el} ${mergeProps(attrs)}>{props.children}</${el}>)}`);
 }
 
 // Merge props along with class name
 function mergeProps(attrs) {
-  attrs = attrs.trim();
+    attrs = attrs.trim();
 
-  if (!attrs) {
-    return "{...props}";
-  }
+    if (!attrs) {
+        return '{...props}';
+    }
 
-  let className = attrs.match(/className="([^"]+)"/);
+    let className = attrs.match(/className="([^"]+)"/);
 
-  if (!className) {
-    return `${attrs} {...props}`;
-  }
+    if (!className) {
+        return `${attrs} {...props}`;
+    }
 
-  className = className[1];
-  attrs = attrs.replace(/ ?className="[^"]+"/, "");
+    className = className[1];
+    attrs = attrs.replace(/ ?className="[^"]+"/, '');
 
-  return `${attrs} {...{...props, className: \`${className} $\{props.className || ''}\`}}`.trim();
+    return `${attrs} {...{...props, className: \`${className} $\{props.className || ''}\`}}`.trim();
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (ViewWriter);
@@ -1319,9 +1318,9 @@ const resolve = filename => path__WEBPACK_IMPORTED_MODULE_0___default.a.resolve(
 
 // Exporting an object since we're dealing with a getter
 /* harmony default export */ __webpack_exports__["default"] = ({
-  get viewHelpers() {
-    return Object(_utils__WEBPACK_IMPORTED_MODULE_1__["requireText"])(resolve('viewHelpers.js'));
-  }
+    get viewHelpers() {
+        return Object(_utils__WEBPACK_IMPORTED_MODULE_1__["requireText"])(resolve('viewHelpers.js'));
+    }
 });
 
 /***/ }),
@@ -1350,50 +1349,50 @@ __webpack_require__.r(__webpack_exports__);
 
 // Useful for nested strings that should be evaluated
 const escape = (str, quote) => {
-  str = str.replace(/\\/g, '\\\\');
+    str = str.replace(/\\/g, '\\\\');
 
-  switch (quote) {
-    case "'":
-      return str.replace(/'/g, "\\'");
-    case '"':
-      return str.replace(/"/g, '\\"');
-    case '`':
-      return str.replace(/`/g, '\\`');
-    default:
-      return str.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/`/g, '\\`');
-  }
+    switch (quote) {
+        case "'":
+            return str.replace(/'/g, "\\'");
+        case '"':
+            return str.replace(/"/g, '\\"');
+        case '`':
+            return str.replace(/`/g, '\\`');
+        default:
+            return str.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/`/g, '\\`');
+    }
 };
 
 const importantizeCSS = css => {
-  return css.replace(/(!important)?;/gi, ' !important;');
+    return css.replace(/(!important)?;/gi, ' !important;');
 };
 
 // Will use the shortest indention as an axis
 const freeText = text => {
-  if (text instanceof Array) {
-    text = text.join('');
-  }
+    if (text instanceof Array) {
+        text = text.join('');
+    }
 
-  // This will allow inline text generation with external functions, same as ctrl+shift+c
-  // As long as we surround the inline text with ==>text<==
-  text = text.replace(/( *)==>((?:.|\n)*?)<==/g, (match, baseIndent, content) => {
-    return content.split('\n').map(line => `${baseIndent}${line}`).join('\n');
-  });
+    // This will allow inline text generation with external functions, same as ctrl+shift+c
+    // As long as we surround the inline text with ==>text<==
+    text = text.replace(/( *)==>((?:.|\n)*?)<==/g, (match, baseIndent, content) => {
+        return content.split('\n').map(line => `${baseIndent}${line}`).join('\n');
+    });
 
-  const lines = text.split('\n');
+    const lines = text.split('\n');
 
-  const minIndent = lines.filter(line => line.trim()).reduce((minIndent, line) => {
-    const currIndent = line.match(/^ */)[0].length;
+    const minIndent = lines.filter(line => line.trim()).reduce((minIndent, line) => {
+        const currIndent = line.match(/^ */)[0].length;
 
-    return currIndent < minIndent ? currIndent : minIndent;
-  }, Infinity);
+        return currIndent < minIndent ? currIndent : minIndent;
+    }, Infinity);
 
-  return lines.map(line => line.slice(minIndent)).join('\n').trim().replace(/\n +\n/g, '\n\n');
+    return lines.map(line => line.slice(minIndent)).join('\n').trim().replace(/\n +\n/g, '\n\n');
 };
 
 // Calls freeText() and disables lint
 const freeLint = script => {
-  return freeText(`
+    return freeText(`
     /* eslint-disable */
 
     ==>${freeText(script)}<==
@@ -1404,7 +1403,7 @@ const freeLint = script => {
 
 // Calls freeLint() and ensures that 'this' is represented by window
 const freeContext = script => {
-  return freeLint(`
+    return freeLint(`
     (function() {
 
     ==>${freeText(script)}<==
@@ -1416,9 +1415,9 @@ const freeContext = script => {
 // Creates a completely isolated scope with Function constructor.
 // args is a varToInject-injectedVarName map.
 const freeScope = (script, context = 'window', args = {}) => {
-  const callArgs = [context].concat(Object.keys(args));
+    const callArgs = [context].concat(Object.keys(args));
 
-  return freeText(`
+    return freeText(`
     new Function(\`
       with (this) {
         ${script}
@@ -1429,20 +1428,20 @@ const freeScope = (script, context = 'window', args = {}) => {
 
 // upper -> Upper
 const upperFirst = str => {
-  return str.substr(0, 1).toUpperCase() + str.substr(1);
+    return str.substr(0, 1).toUpperCase() + str.substr(1);
 };
 
 // foo_barBaz -> ['foo', 'bar', 'Baz']
 const splitWords = str => {
-  return str.replace(/[A-Z]/, ' $&').split(/[^a-zA-Z0-9]+/).filter(word => word.trim());
+    return str.replace(/[A-Z]/, ' $&').split(/[^a-zA-Z0-9]+/).filter(word => word.trim());
 };
 
 // abc 5 0 -> 00abc
 const padLeft = (str, length, char = ' ') => {
-  str = String(str);
-  length = parseInt(length + 1 - str.length);
+    str = String(str);
+    length = parseInt(length + 1 - str.length);
 
-  return Array(length).join(char) + str;
+    return Array(length).join(char) + str;
 };
 
 /***/ }),
@@ -1454,49 +1453,49 @@ __webpack_require__.r(__webpack_exports__);
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 const Internal = _ => {
-  if (typeof _ != 'symbol') {
-    throw TypeError('Accessor must me a symbol');
-  }
-
-  return Klass => {
-    if (typeof Klass != 'function') {
-      throw TypeError('Provided target is not a class');
+    if (typeof _ != 'symbol') {
+        throw TypeError('Accessor must me a symbol');
     }
 
-    const internals = {};
+    return Klass => {
+        if (typeof Klass != 'function') {
+            throw TypeError('Provided target is not a class');
+        }
 
-    Object.defineProperty(Klass.prototype, _, {
-      get() {
-        const _this = _extends({}, internals);
+        const internals = {};
 
-        Object.keys(_this).forEach(key => {
-          const value = _this[key];
+        Object.defineProperty(Klass.prototype, _, {
+            get() {
+                const _this = _extends({}, internals);
 
-          if (typeof value == 'function') {
-            _this[key] = value.bind(this);
-          }
+                Object.keys(_this).forEach(key => {
+                    const value = _this[key];
+
+                    if (typeof value == 'function') {
+                        _this[key] = value.bind(this);
+                    }
+                });
+
+                Object.defineProperty(this, _, {
+                    value: _this
+                });
+
+                return _this;
+            }
         });
 
-        Object.defineProperty(this, _, {
-          value: _this
+        Object.getOwnPropertyNames(Klass.prototype).forEach(key => {
+            if (key[0] != '_') return;
+
+            const { value } = Object.getOwnPropertyDescriptor(Klass.prototype, key);
+
+            if (typeof value != 'function') return;
+
+            const publicKey = key.slice(1);
+            internals[publicKey] = value;
+            delete Klass.prototype[key];
         });
-
-        return _this;
-      }
-    });
-
-    Object.getOwnPropertyNames(Klass.prototype).forEach(key => {
-      if (key[0] != '_') return;
-
-      const { value } = Object.getOwnPropertyDescriptor(Klass.prototype, key);
-
-      if (typeof value != 'function') return;
-
-      const publicKey = key.slice(1);
-      internals[publicKey] = value;
-      delete Klass.prototype[key];
-    });
-  };
+    };
 };
 
 /* harmony default export */ __webpack_exports__["default"] = (Internal);
@@ -1517,33 +1516,33 @@ __webpack_require__.r(__webpack_exports__);
 const cache = {};
 
 const requireText = path => {
-  path = resolve__WEBPACK_IMPORTED_MODULE_1___default.a.sync(path);
+    path = resolve__WEBPACK_IMPORTED_MODULE_1___default.a.sync(path);
 
-  return cache[path] = cache[path] || Object(fs__WEBPACK_IMPORTED_MODULE_0__["readFileSync"])(path).toString();
+    return cache[path] = cache[path] || Object(fs__WEBPACK_IMPORTED_MODULE_0__["readFileSync"])(path).toString();
 };
 
 requireText.promise = path => new Promise((resolve, reject) => {
-  resolve__WEBPACK_IMPORTED_MODULE_1___default()(path, (err, path) => {
-    if (err) {
-      return reject(err);
-    }
+    resolve__WEBPACK_IMPORTED_MODULE_1___default()(path, (err, path) => {
+        if (err) {
+            return reject(err);
+        }
 
-    let content = cache[path];
+        let content = cache[path];
 
-    if (content) {
-      return resolve(content);
-    }
+        if (content) {
+            return resolve(content);
+        }
 
-    Object(fs__WEBPACK_IMPORTED_MODULE_0__["readFile"])(path, (err, content) => {
-      if (err) {
-        return reject(err);
-      }
+        Object(fs__WEBPACK_IMPORTED_MODULE_0__["readFile"])(path, (err, content) => {
+            if (err) {
+                return reject(err);
+            }
 
-      cache[path] = content = content.toString();
+            cache[path] = content = content.toString();
 
-      resolve(content);
+            resolve(content);
+        });
     });
-  });
 });
 
 /* harmony default export */ __webpack_exports__["default"] = (requireText);
@@ -1586,125 +1585,125 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 const _ = Symbol('_ScriptWriter');
 
 let ScriptWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["Internal"])(_), _dec(_class = class ScriptWriter extends _writer__WEBPACK_IMPORTED_MODULE_4__["default"] {
-  get scripts() {
-    return this[_].scripts.slice();
-  }
+    get scripts() {
+        return this[_].scripts.slice();
+    }
 
-  get prefetch() {
-    return this[_].prefetch;
-  }
+    get prefetch() {
+        return this[_].prefetch;
+    }
 
-  set prefetch(prefetch) {
-    return this[_].prefetch = !!prefetch;
-  }
+    set prefetch(prefetch) {
+        return this[_].prefetch = !!prefetch;
+    }
 
-  get baseUrl() {
-    return this[_].baseUrl;
-  }
+    get baseUrl() {
+        return this[_].baseUrl;
+    }
 
-  set baseUrl(baseUrl) {
-    this[_].baseUrl = String(baseUrl);
-  }
+    set baseUrl(baseUrl) {
+        this[_].baseUrl = String(baseUrl);
+    }
 
-  constructor(options = {}) {
-    super();
+    constructor(options = {}) {
+        super();
 
-    this[_].scripts = [];
+        this[_].scripts = [];
 
-    this.baseUrl = options.baseUrl;
-    this.prefetch = options.prefetch;
-  }
+        this.baseUrl = options.baseUrl;
+        this.prefetch = options.prefetch;
+    }
 
-  write(dir, options) {
-    var _this = this;
+    write(dir, options) {
+        var _this = this;
 
-    return _asyncToGenerator(function* () {
-      yield Object(_libs__WEBPACK_IMPORTED_MODULE_3__["mkdirp"])(dir);
+        return _asyncToGenerator(function* () {
+            yield Object(_libs__WEBPACK_IMPORTED_MODULE_3__["mkdirp"])(dir);
 
-      options = _extends({}, options, {
-        prefetch: _this.prefetch
-      });
+            options = _extends({}, options, {
+                prefetch: _this.prefetch
+            });
 
-      const indexFilePath = `${dir}/index.js`;
-      const childFilePaths = [indexFilePath];
+            const indexFilePath = `${dir}/index.js`;
+            const childFilePaths = [indexFilePath];
 
-      if (!options.prefetch) {
-        yield _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].writeFile(indexFilePath, _this[_].composeScriptLoader());
-        return childFilePaths;
-      }
+            if (!options.prefetch) {
+                yield _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].writeFile(indexFilePath, _this[_].composeScriptLoader());
+                return childFilePaths;
+            }
 
-      const scriptFileNames = _this.scripts.map(function (script, index, { length }) {
-        const fileName = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["padLeft"])(index, length / 10 + 1, 0) + '.js';
-        const filePath = `${dir}/${fileName}`;
-        childFilePaths.push(filePath);
+            const scriptFileNames = _this.scripts.map(function (script, index, { length }) {
+                const fileName = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["padLeft"])(index, length / 10 + 1, 0) + '.js';
+                const filePath = `${dir}/${fileName}`;
+                childFilePaths.push(filePath);
 
-        return fileName;
-      });
+                return fileName;
+            });
 
-      const fetchingScripts = _this.scripts.map((() => {
-        var _ref = _asyncToGenerator(function* (script, index) {
-          const scriptFileName = scriptFileNames[index];
+            const fetchingScripts = _this.scripts.map((() => {
+                var _ref = _asyncToGenerator(function* (script, index) {
+                    const scriptFileName = scriptFileNames[index];
 
-          let code = script.type == 'code' ? script.body : /^http/.test(script.body) ? yield node_fetch__WEBPACK_IMPORTED_MODULE_0___default()(script.body).then(function (res) {
-            return res.text();
-          }).then(function (text) {
-            return uglify_js__WEBPACK_IMPORTED_MODULE_2___default.a.minify(text).code;
-          }) : Object(_utils__WEBPACK_IMPORTED_MODULE_5__["requireText"])(`${_this.baseUrl}/${script.body}`);
-          code = code.replace(/\n\/\/# ?sourceMappingURL=.*\s*$/, '');
-          code = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeContext"])(code);
+                    let code = script.type == 'code' ? script.body : /^http/.test(script.body) ? yield node_fetch__WEBPACK_IMPORTED_MODULE_0___default()(script.body).then(function (res) {
+                        return res.text();
+                    }).then(function (text) {
+                        return uglify_js__WEBPACK_IMPORTED_MODULE_2___default.a.minify(text).code;
+                    }) : Object(_utils__WEBPACK_IMPORTED_MODULE_5__["requireText"])(`${_this.baseUrl}/${script.body}`);
+                    code = code.replace(/\n\/\/# ?sourceMappingURL=.*\s*$/, '');
+                    code = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeContext"])(code);
 
-          return _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].writeFile(`${dir}/${scriptFileName}`, code);
+                    return _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].writeFile(`${dir}/${scriptFileName}`, code);
+                });
+
+                return function (_x, _x2) {
+                    return _ref.apply(this, arguments);
+                };
+            })());
+
+            const scriptsIndexContent = scriptFileNames.map(function (scriptFileName) {
+                return `import './${scriptFileName}'`;
+            }).join('\n');
+
+            const writingIndex = _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].writeFile(indexFilePath, Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeLint"])(scriptsIndexContent));
+
+            yield Promise.all([...fetchingScripts, writingIndex]);
+
+            return childFilePaths;
+        })();
+    }
+
+    setScript(src, content) {
+        let type;
+        let body;
+
+        if (src) {
+            type = 'src';
+            body = /^\w+:\/\//.test(src) ? src : path__WEBPACK_IMPORTED_MODULE_1___default.a.resolve('/', src);
+        } else {
+            type = 'code';
+            body = uglify_js__WEBPACK_IMPORTED_MODULE_2___default.a.minify(content).code;
+        }
+
+        const exists = this[_].scripts.some(script => {
+            return script.body == body;
         });
 
-        return function (_x, _x2) {
-          return _ref.apply(this, arguments);
-        };
-      })());
-
-      const scriptsIndexContent = scriptFileNames.map(function (scriptFileName) {
-        return `import './${scriptFileName}'`;
-      }).join('\n');
-
-      const writingIndex = _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].writeFile(indexFilePath, Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeLint"])(scriptsIndexContent));
-
-      yield Promise.all([...fetchingScripts, writingIndex]);
-
-      return childFilePaths;
-    })();
-  }
-
-  setScript(src, content) {
-    let type;
-    let body;
-
-    if (src) {
-      type = 'src';
-      body = /^\w+:\/\//.test(src) ? src : path__WEBPACK_IMPORTED_MODULE_1___default.a.resolve('/', src);
-    } else {
-      type = 'code';
-      body = uglify_js__WEBPACK_IMPORTED_MODULE_2___default.a.minify(content).code;
+        if (!exists) {
+            this[_].scripts.push({ type, body });
+        }
     }
 
-    const exists = this[_].scripts.some(script => {
-      return script.body == body;
-    });
-
-    if (!exists) {
-      this[_].scripts.push({ type, body });
-    }
-  }
-
-  _composeScriptLoader() {
-    const scripts = this[_].scripts.map(script => {
-      return Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeText"])(`
+    _composeScriptLoader() {
+        const scripts = this[_].scripts.map(script => {
+            return Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeText"])(`
         {
           type: '${script.type}',
           body: '${Object(_utils__WEBPACK_IMPORTED_MODULE_5__["escape"])(script.body, "'")}',
         },
       `);
-    }).join('\n');
+        }).join('\n');
 
-    return Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeLint"])(`
+        return Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeLint"])(`
       const scripts = [
         ==>${scripts}<==
       ]
@@ -1735,7 +1734,7 @@ let ScriptWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["Internal"
 
       export default loadingScripts
     `);
-  }
+    }
 }) || _class);
 
 
@@ -1778,140 +1777,140 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 const _ = Symbol('_StyleWriter');
 const cleanCSS = new clean_css__WEBPACK_IMPORTED_MODULE_0___default.a({
-  rebaseTo: '..'
+    rebaseTo: '..'
 });
 
 let StyleWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["Internal"])(_), _dec(_class = class StyleWriter extends _writer__WEBPACK_IMPORTED_MODULE_4__["default"] {
-  get styles() {
-    return this[_].styles.slice();
-  }
+    get styles() {
+        return this[_].styles.slice();
+    }
 
-  get prefetch() {
-    return this[_].prefetch;
-  }
+    get prefetch() {
+        return this[_].prefetch;
+    }
 
-  set prefetch(prefetch) {
-    return this[_].prefetch = !!prefetch;
-  }
+    set prefetch(prefetch) {
+        return this[_].prefetch = !!prefetch;
+    }
 
-  get baseUrl() {
-    return this[_].baseUrl;
-  }
+    get baseUrl() {
+        return this[_].baseUrl;
+    }
 
-  set baseUrl(baseUrl) {
-    this[_].baseUrl = String(baseUrl);
-  }
+    set baseUrl(baseUrl) {
+        this[_].baseUrl = String(baseUrl);
+    }
 
-  get source() {
-    return this[_].source;
-  }
+    get source() {
+        return this[_].source;
+    }
 
-  set source(source) {
-    this[_].source = String(source);
-  }
+    set source(source) {
+        this[_].source = String(source);
+    }
 
-  constructor(options = {}) {
-    super();
+    constructor(options = {}) {
+        super();
 
-    this[_].styles = [];
+        this[_].styles = [];
 
-    this.baseUrl = options.baseUrl;
-    this.prefetch = options.prefetch;
-    this.source = options.srouce;
-  }
+        this.baseUrl = options.baseUrl;
+        this.prefetch = options.prefetch;
+        this.source = options.srouce;
+    }
 
-  write(dir, options) {
-    var _this = this;
+    write(dir, options) {
+        var _this = this;
 
-    return _asyncToGenerator(function* () {
-      yield Object(_libs__WEBPACK_IMPORTED_MODULE_3__["mkdirp"])(dir);
+        return _asyncToGenerator(function* () {
+            yield Object(_libs__WEBPACK_IMPORTED_MODULE_3__["mkdirp"])(dir);
 
-      options = _extends({}, options, {
-        prefetch: _this.prefetch
-      });
+            options = _extends({}, options, {
+                prefetch: _this.prefetch
+            });
 
-      const indexFilePath = `${dir}/index.js`;
-      const childFilePaths = [indexFilePath];
+            const indexFilePath = `${dir}/index.js`;
+            const childFilePaths = [indexFilePath];
 
-      if (!options.prefetch) {
-        yield _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].writeFile(indexFilePath, _this[_].composeStyleLoader());
-        return childFilePaths;
-      }
+            if (!options.prefetch) {
+                yield _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].writeFile(indexFilePath, _this[_].composeStyleLoader());
+                return childFilePaths;
+            }
 
-      const styleFileNames = _this.styles.map(function (style, index, { length }) {
-        const fileName = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["padLeft"])(index, length / 10 + 1, 0) + '.css';
-        const filePath = `${dir}/${fileName}`;
-        childFilePaths.push(filePath);
+            const styleFileNames = _this.styles.map(function (style, index, { length }) {
+                const fileName = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["padLeft"])(index, length / 10 + 1, 0) + '.css';
+                const filePath = `${dir}/${fileName}`;
+                childFilePaths.push(filePath);
 
-        return fileName;
-      });
+                return fileName;
+            });
 
-      const fetchingStyles = _this.styles.map((() => {
-        var _ref = _asyncToGenerator(function* (style, index) {
-          const styleFileName = styleFileNames[index];
+            const fetchingStyles = _this.styles.map((() => {
+                var _ref = _asyncToGenerator(function* (style, index) {
+                    const styleFileName = styleFileNames[index];
 
-          const sheet = style.type == 'sheet' ? style.body : /^http/.test(style.body) ? yield node_fetch__WEBPACK_IMPORTED_MODULE_1___default()(style.body).then(function (res) {
-            return res.text();
-          }) : yield _utils__WEBPACK_IMPORTED_MODULE_5__["requireText"].promise(`${_this.baseUrl}/${style.body}`);
+                    const sheet = style.type == 'sheet' ? style.body : /^http/.test(style.body) ? yield node_fetch__WEBPACK_IMPORTED_MODULE_1___default()(style.body).then(function (res) {
+                        return res.text();
+                    }) : yield _utils__WEBPACK_IMPORTED_MODULE_5__["requireText"].promise(`${_this.baseUrl}/${style.body}`);
 
-          return _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].writeFile(`${dir}/${styleFileName}`, _this[_].transformSheet(sheet));
+                    return _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].writeFile(`${dir}/${styleFileName}`, _this[_].transformSheet(sheet));
+                });
+
+                return function (_x, _x2) {
+                    return _ref.apply(this, arguments);
+                };
+            })());
+
+            const stylesIndexContent = styleFileNames.map(function (styleFileName) {
+                return `import './${styleFileName}'`;
+            }).join('\n');
+
+            const writingIndex = _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].writeFile(indexFilePath, Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeLint"])(stylesIndexContent));
+
+            yield Promise.all([...fetchingStyles, writingIndex]);
+
+            return childFilePaths;
+        })();
+    }
+
+    setStyle(href, content) {
+        let type;
+        let body;
+
+        if (href) {
+            type = 'href';
+            body = /^\w+:\/\//.test(href) ? href : path__WEBPACK_IMPORTED_MODULE_2___default.a.resolve('/', href);
+        } else {
+            type = 'sheet';
+            body = content;
+        }
+
+        const exists = this[_].styles.some(style => {
+            return style.body == body;
         });
 
-        return function (_x, _x2) {
-          return _ref.apply(this, arguments);
-        };
-      })());
-
-      const stylesIndexContent = styleFileNames.map(function (styleFileName) {
-        return `import './${styleFileName}'`;
-      }).join('\n');
-
-      const writingIndex = _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].writeFile(indexFilePath, Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeLint"])(stylesIndexContent));
-
-      yield Promise.all([...fetchingStyles, writingIndex]);
-
-      return childFilePaths;
-    })();
-  }
-
-  setStyle(href, content) {
-    let type;
-    let body;
-
-    if (href) {
-      type = 'href';
-      body = /^\w+:\/\//.test(href) ? href : path__WEBPACK_IMPORTED_MODULE_2___default.a.resolve('/', href);
-    } else {
-      type = 'sheet';
-      body = content;
+        if (!exists) {
+            this[_].styles.push({ type, body });
+        }
     }
 
-    const exists = this[_].styles.some(style => {
-      return style.body == body;
-    });
+    _composeStyleLoader() {
+        this[_].styles.forEach(style => {
+            if (style.type == 'sheet') {
+                style.body = this[_].transformSheet(style.body);
+            }
+        });
 
-    if (!exists) {
-      this[_].styles.push({ type, body });
-    }
-  }
-
-  _composeStyleLoader() {
-    this[_].styles.forEach(style => {
-      if (style.type == 'sheet') {
-        style.body = this[_].transformSheet(style.body);
-      }
-    });
-
-    const styles = this[_].styles.map(style => {
-      return Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeText"])(`
+        const styles = this[_].styles.map(style => {
+            return Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeText"])(`
         {
           type: '${style.type}',
           body: '${Object(_utils__WEBPACK_IMPORTED_MODULE_5__["escape"])(style.body, "'")}',
         },
       `);
-    }).join('\n');
+        }).join('\n');
 
-    return Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeLint"])(`
+        return Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeLint"])(`
       const styles = [
         ==>${styles}<==
       ]
@@ -1945,20 +1944,20 @@ let StyleWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["Internal"]
         return loading
       })
     `);
-  }
+    }
 
-  // Will minify and encapsulate classes
-  _transformSheet(sheet) {
-    sheet = cleanCSS.minify(sheet).styles;
+    // Will minify and encapsulate classes
+    _transformSheet(sheet) {
+        sheet = cleanCSS.minify(sheet).styles;
 
-    // Make URLs absolute so webpack won't throw any errors
-    return sheet.replace(/url\(([^)]+)\)/g, (match, url) => {
-      if (/^(.+):\/\//.test(url)) return match;
+        // Make URLs absolute so webpack won't throw any errors
+        return sheet.replace(/url\(([^)]+)\)/g, (match, url) => {
+            if (/^(.+):\/\//.test(url)) return match;
 
-      url = path__WEBPACK_IMPORTED_MODULE_2___default.a.resolve('/', url);
-      return `url(${url})`;
-    });
-  }
+            url = path__WEBPACK_IMPORTED_MODULE_2___default.a.resolve('/', url);
+            return `url(${url})`;
+        });
+    }
 }) || _class);
 
 
