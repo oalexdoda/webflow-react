@@ -104,14 +104,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var cheerio__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(cheerio__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _git__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
-/* harmony import */ var _libs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7);
-/* harmony import */ var _writers__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(17);
+/* harmony import */ var _libs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
+/* harmony import */ var _writers__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(14);
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 
 
-
+// import git from './legacy/git';
 
 
 
@@ -122,11 +121,13 @@ const transpile = (() => {
         let inputFiles;
         let outputFiles = [];
         try {
-            yield Promise.all([_libs__WEBPACK_IMPORTED_MODULE_3__["fs"].readdir(config.input).then(function (files) {
+            yield Promise.all([_libs__WEBPACK_IMPORTED_MODULE_2__["fs"].readdir(config.input).then(function (files) {
                 inputFiles = files;
-            }), _git__WEBPACK_IMPORTED_MODULE_2__["default"].removeWFRFiles(config).then(function (files) {
-                outputFiles.push(...files);
-            })]);
+            })]
+            // git.removeWFRFiles(config).then(files => {
+            //     outputFiles.push(...files);
+            // }),
+            );
         } catch (e) {
             console.log(e);
         }
@@ -136,7 +137,7 @@ const transpile = (() => {
         });
         try {
             yield Promise.all(folders.map(function (folder) {
-                return _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].readdir(`${config.input}/${folder}`).then(function (files) {
+                return _libs__WEBPACK_IMPORTED_MODULE_2__["fs"].readdir(`${config.input}/${folder}`).then(function (files) {
                     inputFiles = [...(inputFiles || []), ...(files || []).map(function (file) {
                         return `${folder}/${file}`;
                     })];
@@ -153,12 +154,12 @@ const transpile = (() => {
             return !path__WEBPACK_IMPORTED_MODULE_1___default.a.extname(file) && defaultPublicSubFolders.includes(file);
         });
 
-        const scriptWriter = new _writers__WEBPACK_IMPORTED_MODULE_4__["ScriptWriter"]({
+        const scriptWriter = new _writers__WEBPACK_IMPORTED_MODULE_3__["ScriptWriter"]({
             baseUrl: config.input,
             prefetch: config.prefetch
         });
 
-        const styleWriter = new _writers__WEBPACK_IMPORTED_MODULE_4__["StyleWriter"]({
+        const styleWriter = new _writers__WEBPACK_IMPORTED_MODULE_3__["StyleWriter"]({
             baseUrl: config.input,
             prefetch: config.prefetch,
             source: config.srouce
@@ -168,13 +169,11 @@ const transpile = (() => {
             return transpileHTMLFile(config, htmlFile, scriptWriter, styleWriter);
         });
         const viewWriters = yield Promise.all(transpilingHTMLFiles);
-        const writingFiles = Promise.all([_writers__WEBPACK_IMPORTED_MODULE_4__["ViewWriter"].writeAll(viewWriters, config.output.src.views, config.output.src.components, config.output.src.meta, config.output.src.styles, config.output.src.controllers).then(function (paths) {
+        const writingFiles = Promise.all([_writers__WEBPACK_IMPORTED_MODULE_3__["ViewWriter"].writeAll(viewWriters, config.output.src.views, config.output.src.components, config.output.src.meta, config.output.src.styles, config.output.src.controllers).then(function (paths) {
             return outputFiles.push(...paths);
-        }),
-        // scriptWriter.write(
-        //   config.output.src.scripts
-        // ).then((paths) => outputFiles.push(...paths)),
-        styleWriter.write(config.output.src.styles).then(function (paths) {
+        }), scriptWriter.write(config.output.src.scripts).then(function (paths) {
+            return outputFiles.push(...paths);
+        }), styleWriter.write(config.output.src.styles).then(function (paths) {
             return outputFiles.push(...paths);
         })]);
 
@@ -187,9 +186,10 @@ const transpile = (() => {
             console.log(e);
         }
 
-        return _git__WEBPACK_IMPORTED_MODULE_2__["default"].add(outputFiles, config).then(function (files) {
-            return _git__WEBPACK_IMPORTED_MODULE_2__["default"].commit(files, 'Updated');
-        });
+        // TODO: Enable Git?
+        // return git.add(outputFiles, config).then(files => {
+        //     return git.commit(files, 'Updated');
+        // });
     });
 
     return function transpile(_x) {
@@ -199,7 +199,7 @@ const transpile = (() => {
 
 const transpileHTMLFile = (() => {
     var _ref2 = _asyncToGenerator(function* (config, htmlFile, scriptWriter, styleWriter) {
-        const html = (yield _libs__WEBPACK_IMPORTED_MODULE_3__["fs"].readFile(`${config.input}/${htmlFile}`)).toString();
+        const html = (yield _libs__WEBPACK_IMPORTED_MODULE_2__["fs"].readFile(`${config.input}/${htmlFile}`)).toString();
         const $ = cheerio__WEBPACK_IMPORTED_MODULE_0___default.a.load(html);
         const $head = $('head');
 
@@ -209,7 +209,7 @@ const transpileHTMLFile = (() => {
 
         const $body = $('body');
         const splitter = htmlFile.split('/');
-        const viewWriter = new _writers__WEBPACK_IMPORTED_MODULE_4__["ViewWriter"]({
+        const viewWriter = new _writers__WEBPACK_IMPORTED_MODULE_3__["ViewWriter"]({
             name: splitter[htmlFile.split('/').length - 1].split('.').slice(0, -1).join('.'),
             baseUrl: config.baseUrl,
             parent: htmlFile.split('/')[0] === htmlFile ? null : htmlFile.split('/')[0],
@@ -234,11 +234,11 @@ const makePublicDir = (() => {
     var _ref3 = _asyncToGenerator(function* (config, publicSubDirs) {
         const publicDir = config.output.public;
         yield Promise.all(publicSubDirs.map(function (publicSubDir) {
-            return Object(_libs__WEBPACK_IMPORTED_MODULE_3__["ncp"])(`${config.input}/${publicSubDir}`, `${publicDir}/${publicSubDir}`);
+            return Object(_libs__WEBPACK_IMPORTED_MODULE_2__["ncp"])(`${config.input}/${publicSubDir}`, `${publicDir}/${publicSubDir}`);
         }));
 
         // Resolving relative paths
-        const filePaths = yield Object(_libs__WEBPACK_IMPORTED_MODULE_3__["reread"])(config.input);
+        const filePaths = yield Object(_libs__WEBPACK_IMPORTED_MODULE_2__["reread"])(config.input);
 
         const relativePaths = filePaths.map(function (filePath) {
             const relativePath = path__WEBPACK_IMPORTED_MODULE_1___default.a.relative(config.input, filePath);
@@ -313,181 +313,19 @@ module.exports = require("path");
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "add", function() { return add; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "commit", function() { return commit; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "removeWFRFiles", function() { return removeWFRFiles; });
-/* harmony import */ var execa__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5);
-/* harmony import */ var execa__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(execa__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var rimraf__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var rimraf__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(rimraf__WEBPACK_IMPORTED_MODULE_2__);
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-
-
-
-// import { fs } from "./libs";
-
-// Attempt at supporting windows by monkey patching path.relative to prevent backslashes.
-const orPathRel = path__WEBPACK_IMPORTED_MODULE_1___default.a.relative;
-path__WEBPACK_IMPORTED_MODULE_1___default.a.relative = (from, to) => orPathRel(from, to).replace(/\\/gi, '/');
-
-// Will add given files and will ignore those who aren't exist
-const add = (() => {
-    var _ref = _asyncToGenerator(function* (files, config) {
-        const { stdout: root } = yield execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['rev-parse', '--show-toplevel']);
-
-        files = files.map(function (file) {
-            return path__WEBPACK_IMPORTED_MODULE_1___default.a.resolve(root, file);
-        });
-
-        let unstaged = yield Promise.all([execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['diff', '--name-only']), execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['ls-files', '--others', '--exclude-standard'])]).then(function (results) {
-            return results.reduce(function (unstaged, { stdout }) {
-                return unstaged.concat(stdout.split('\n').filter(Boolean));
-            }, []);
-        });
-
-        unstaged = unstaged.map(function (file) {
-            return path__WEBPACK_IMPORTED_MODULE_1___default.a.resolve(root, file);
-        });
-        files = files.filter(function (file) {
-            return unstaged.includes(file);
-        });
-
-        yield execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['add', ...files, `${config.output.src.root}/routes.js`, config.output.src.views, config.output.src.components, config.output.src.styles, config.output.public]);
-
-        return [...files, `${config.output.src.root}/routes.js`, config.output.src.views, config.output.src.components, config.output.src.styles, config.output.public];
-    });
-
-    return function add(_x, _x2) {
-        return _ref.apply(this, arguments);
-    };
-})();
-
-// Will commit changes, and if files not exist, will print status
-const commit = (files, message, stdio = 'inherit') => {
-    if (files && files.length) try {
-        return execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['commit', '-m', `Webflow React: ${message}`, '--allow-empty'], {
-            stdio
-        });
-    } catch (e) {
-        // Probably no changes were made
-    }
-
-    return execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['status'], {
-        stdio
-    });
-};
-
-const removeWFRFiles = (() => {
-    var _ref2 = _asyncToGenerator(function* (config) {
-        const { stdout: diffFiles } = yield execa__WEBPACK_IMPORTED_MODULE_0___default()('git', ['diff', '--name-only']);
-
-        if (diffFiles) {
-            // throw Error(
-            //   [
-            //     "Cannot transpile: Your index contains uncommitted changes.",
-            //     "Please commit or stash them."
-            //   ].join("\n")
-            // );
-            console.log(['=========', 'Warning: You have uncommitted changes!', '========='].join('\n'));
-        }
-
-        // let { stderr, stdout: hash } = await execa("git", [
-        //   "log",
-        //   "-1",
-        //   "--format=%H",
-        //   `--grep=webflow-react: Updated`
-        // ]);
-
-        // // Probably git is not initialized
-        // if (stderr) throw Error(stderr);
-        // // No previous migrations found
-        // if (!hash) return [];
-
-        // List all files but deleted ones
-        // let { stdout: files } = await execa("git", [
-        //   "diff",
-        //   "--name-only",
-        //   "--diff-filter=ACMRTUXB",
-        //   `${hash}~1`,
-        //   hash
-        // ]);
-        // files = files.split("\n").filter(Boolean);
-        // console.log(files)
-
-        // const { stdout: root } = await execa("git", ["rev-parse", "--show-toplevel"]);
-
-        yield Promise.all([
-        // ...files.map(async file => {
-        //   return fs.unlink(`${root}/${file}`);
-        // }),
-
-        new Promise(function (res) {
-            return rimraf__WEBPACK_IMPORTED_MODULE_2___default()(`${config.output.src.root}/routes.js`, function () {
-                return res();
-            });
-        }), new Promise(function (res) {
-            return rimraf__WEBPACK_IMPORTED_MODULE_2___default()(config.output.src.views, function () {
-                return res();
-            });
-        }), new Promise(function (res) {
-            return rimraf__WEBPACK_IMPORTED_MODULE_2___default()(config.output.src.components, function () {
-                return res();
-            });
-        }), new Promise(function (res) {
-            return rimraf__WEBPACK_IMPORTED_MODULE_2___default()(config.output.src.styles, function () {
-                return res();
-            });
-        })]);
-
-        // return [...files||[]];
-        return [`${config.output.src.root}/routes.js`, config.output.src.views, config.output.src.components, config.output.src.styles, config.output.public];
-    });
-
-    return function removeWFRFiles(_x3) {
-        return _ref2.apply(this, arguments);
-    };
-})();
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    add,
-    commit,
-    removeWFRFiles
-});
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports) {
-
-module.exports = require("execa");
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports) {
-
-module.exports = require("rimraf");
-
-/***/ }),
-/* 7 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "fs", function() { return _fs__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _mkdirp__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(11);
+/* harmony import */ var _mkdirp__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "mkdirp", function() { return _mkdirp__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _ncp__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(13);
+/* harmony import */ var _ncp__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ncp", function() { return _ncp__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _reread__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(14);
+/* harmony import */ var _reread__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reread", function() { return _reread__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
-/* harmony import */ var _rimraf__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(16);
+/* harmony import */ var _rimraf__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(13);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "rimraf", function() { return _rimraf__WEBPACK_IMPORTED_MODULE_4__["default"]; });
 
 
@@ -497,7 +335,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 8 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -508,9 +346,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stat", function() { return stat; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "unlink", function() { return unlink; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "writeFile", function() { return writeFile; });
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_1__);
 
 
@@ -532,26 +370,26 @@ const writeFile = Object(util__WEBPACK_IMPORTED_MODULE_1__["promisify"])(fs__WEB
 });
 
 /***/ }),
-/* 9 */
+/* 6 */
 /***/ (function(module, exports) {
 
 module.exports = require("fs");
 
 /***/ }),
-/* 10 */
+/* 7 */
 /***/ (function(module, exports) {
 
 module.exports = require("util");
 
 /***/ }),
-/* 11 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(12);
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 /* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_1__);
 
 
@@ -559,20 +397,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = (Object(util__WEBPACK_IMPORTED_MODULE_1__["promisify"])(fs_extra__WEBPACK_IMPORTED_MODULE_0___default.a.mkdirp));
 
 /***/ }),
-/* 12 */
+/* 9 */
 /***/ (function(module, exports) {
 
 module.exports = require("fs-extra");
 
 /***/ }),
-/* 13 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(12);
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 /* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_1__);
 
 
@@ -580,14 +418,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = (Object(util__WEBPACK_IMPORTED_MODULE_1__["promisify"])(fs_extra__WEBPACK_IMPORTED_MODULE_0___default.a.copy));
 
 /***/ }),
-/* 14 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var recursive_readdir__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(15);
+/* harmony import */ var recursive_readdir__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(12);
 /* harmony import */ var recursive_readdir__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(recursive_readdir__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_1__);
 
 
@@ -595,20 +433,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = (Object(util__WEBPACK_IMPORTED_MODULE_1__["promisify"])(recursive_readdir__WEBPACK_IMPORTED_MODULE_0___default.a));
 
 /***/ }),
-/* 15 */
+/* 12 */
 /***/ (function(module, exports) {
 
 module.exports = require("recursive-readdir");
 
 /***/ }),
-/* 16 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(12);
+/* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 /* harmony import */ var fs_extra__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fs_extra__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_1__);
 
 
@@ -616,21 +454,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = (Object(util__WEBPACK_IMPORTED_MODULE_1__["promisify"])(fs_extra__WEBPACK_IMPORTED_MODULE_0___default.a.remove));
 
 /***/ }),
-/* 17 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _writer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
+/* harmony import */ var _writer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(15);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Writer", function() { return _writer__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _view_writer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(19);
+/* harmony import */ var _view_writer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(16);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ViewWriter", function() { return _view_writer__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _script_writer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(28);
+/* harmony import */ var _script_writer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(25);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ScriptWriter", function() { return _script_writer__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _style_writer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(30);
+/* harmony import */ var _style_writer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(27);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "StyleWriter", function() { return _style_writer__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
 
@@ -639,7 +477,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /***/ }),
-/* 18 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -654,25 +492,25 @@ let Writer = class Writer {
 /* harmony default export */ __webpack_exports__["default"] = (Writer);
 
 /***/ }),
-/* 19 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var cheerio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
 /* harmony import */ var cheerio__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(cheerio__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var htmltojsx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(20);
+/* harmony import */ var htmltojsx__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(17);
 /* harmony import */ var htmltojsx__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(htmltojsx__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var statuses__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(21);
+/* harmony import */ var statuses__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(18);
 /* harmony import */ var statuses__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(statuses__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var uglify_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(22);
+/* harmony import */ var uglify_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(19);
 /* harmony import */ var uglify_js__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(uglify_js__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _libs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(7);
-/* harmony import */ var _raw__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(23);
-/* harmony import */ var _writer__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(18);
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(24);
+/* harmony import */ var _libs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(4);
+/* harmony import */ var _raw__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(20);
+/* harmony import */ var _writer__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(15);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(21);
 var _dec, _class;
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
@@ -1285,32 +1123,32 @@ function mergeProps(attrs) {
 /* harmony default export */ __webpack_exports__["default"] = (ViewWriter);
 
 /***/ }),
-/* 20 */
+/* 17 */
 /***/ (function(module, exports) {
 
 module.exports = require("htmltojsx");
 
 /***/ }),
-/* 21 */
+/* 18 */
 /***/ (function(module, exports) {
 
 module.exports = require("statuses");
 
 /***/ }),
-/* 22 */
+/* 19 */
 /***/ (function(module, exports) {
 
 module.exports = require("uglify-js");
 
 /***/ }),
-/* 23 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(24);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(21);
 
 
 
@@ -1324,7 +1162,7 @@ const resolve = filename => path__WEBPACK_IMPORTED_MODULE_0___default.a.resolve(
 });
 
 /***/ }),
-/* 24 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1338,10 +1176,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "upperFirst", function() { return upperFirst; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "splitWords", function() { return splitWords; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "padLeft", function() { return padLeft; });
-/* harmony import */ var _internal__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(25);
+/* harmony import */ var _internal__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(22);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Internal", function() { return _internal__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _requireText__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(26);
+/* harmony import */ var _requireText__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(23);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "requireText", function() { return _requireText__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
 
@@ -1445,7 +1283,7 @@ const padLeft = (str, length, char = ' ') => {
 };
 
 /***/ }),
-/* 25 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1501,14 +1339,14 @@ const Internal = _ => {
 /* harmony default export */ __webpack_exports__["default"] = (Internal);
 
 /***/ }),
-/* 26 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var resolve__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(27);
+/* harmony import */ var resolve__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(24);
 /* harmony import */ var resolve__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(resolve__WEBPACK_IMPORTED_MODULE_1__);
 
 
@@ -1548,26 +1386,26 @@ requireText.promise = path => new Promise((resolve, reject) => {
 /* harmony default export */ __webpack_exports__["default"] = (requireText);
 
 /***/ }),
-/* 27 */
+/* 24 */
 /***/ (function(module, exports) {
 
 module.exports = require("resolve");
 
 /***/ }),
-/* 28 */
+/* 25 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var node_fetch__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(29);
+/* harmony import */ var node_fetch__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(26);
 /* harmony import */ var node_fetch__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_fetch__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var uglify_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(22);
+/* harmony import */ var uglify_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(19);
 /* harmony import */ var uglify_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(uglify_js__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _libs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7);
-/* harmony import */ var _writer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(18);
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(24);
+/* harmony import */ var _libs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4);
+/* harmony import */ var _writer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(15);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(21);
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _dec, _class;
@@ -1741,26 +1579,26 @@ let ScriptWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["Internal"
 /* harmony default export */ __webpack_exports__["default"] = (ScriptWriter);
 
 /***/ }),
-/* 29 */
+/* 26 */
 /***/ (function(module, exports) {
 
 module.exports = require("node-fetch");
 
 /***/ }),
-/* 30 */
+/* 27 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var clean_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(31);
+/* harmony import */ var clean_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(28);
 /* harmony import */ var clean_css__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(clean_css__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var node_fetch__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(29);
+/* harmony import */ var node_fetch__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(26);
 /* harmony import */ var node_fetch__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(node_fetch__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _libs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7);
-/* harmony import */ var _writer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(18);
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(24);
+/* harmony import */ var _libs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4);
+/* harmony import */ var _writer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(15);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(21);
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _dec, _class;
@@ -1964,7 +1802,7 @@ let StyleWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["Internal"]
 /* harmony default export */ __webpack_exports__["default"] = (StyleWriter);
 
 /***/ }),
-/* 31 */
+/* 28 */
 /***/ (function(module, exports) {
 
 module.exports = require("clean-css");

@@ -1,6 +1,6 @@
 import cheerio from 'cheerio';
 import path from 'path';
-import git from './git';
+// import git from './legacy/git';
 import { fs, ncp, reread } from './libs';
 import { ViewWriter, ScriptWriter, StyleWriter } from './writers';
 
@@ -14,9 +14,9 @@ export const transpile = async config => {
             fs.readdir(config.input).then(files => {
                 inputFiles = files;
             }),
-            git.removeWFRFiles(config).then(files => {
-                outputFiles.push(...files);
-            }),
+            // git.removeWFRFiles(config).then(files => {
+            //     outputFiles.push(...files);
+            // }),
         ]);
     } catch (e) {
         console.log(e);
@@ -71,9 +71,9 @@ export const transpile = async config => {
             config.output.src.styles,
             config.output.src.controllers
         ).then(paths => outputFiles.push(...paths)),
-        // scriptWriter.write(
-        //   config.output.src.scripts
-        // ).then((paths) => outputFiles.push(...paths)),
+        scriptWriter
+            .write(config.output.src.scripts)
+            .then(paths => outputFiles.push(...paths)),
         styleWriter
             .write(config.output.src.styles)
             .then(paths => outputFiles.push(...paths)),
@@ -88,9 +88,10 @@ export const transpile = async config => {
         console.log(e);
     }
 
-    return git.add(outputFiles, config).then(files => {
-        return git.commit(files, 'Updated');
-    });
+    // TODO: Enable Git?
+    // return git.add(outputFiles, config).then(files => {
+    //     return git.commit(files, 'Updated');
+    // });
 };
 
 const transpileHTMLFile = async (
