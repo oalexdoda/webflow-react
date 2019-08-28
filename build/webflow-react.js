@@ -561,17 +561,21 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
             const routesFilePath = `${dir}/../routes.js`;
             const childFilePaths = [indexFilePath, helpersFilePath, routesFilePath];
             ctrlsDir = path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, ctrlsDir);
-            const routes = `
-import React from 'react';
-import { Route } from 'react-router-dom';
-import * as Views from './views';
 
-export default () => [
-  <Route key="route_index" path="/" component={Views.IndexView} exact />,
-  ${viewWriters.map(function (viewWriter) {
+            // Prepare the "routes.js" template.
+            const routes = `
+            import React from 'react';
+            import { Route } from 'react-router-dom';
+            import * as Views from './views';
+
+            export default () => [
+            <Route key="route_index" path="/" component={Views.IndexView} exact />,
+            ${viewWriters.map(function (viewWriter) {
                 return `<Route key="route_${viewWriter.className.replace(/view/gi, '')}" path="${viewWriter.parent ? `/${viewWriter.parent}` : ''}/${viewWriter.className.replace(/view/gi, '').split(/(?=[A-Z])/).join('-').toLowerCase()}" component={Views.${viewWriter.className}} exact />`;
             }).join(',\n  ')}
-]`;
+            ]`;
+
+            // Prepare the views "index.js" template.
             const index = viewWriters.map(function (viewWriter) {
                 return `export { default as ${viewWriter.className} } from './${viewWriter.className}'`;
             }).join('\n');
@@ -820,8 +824,13 @@ export default () => [
         var _this = this;
 
         return _asyncToGenerator(function* () {
+            // Set the file path.
             const filePath = `${dir}/${_this.className}.js`;
+
+            // Set children file paths.
             const childFilePaths = [filePath];
+
+            // Set children writer.
             const writingChildren = _this[_].children.map((() => {
                 var _ref2 = _asyncToGenerator(function* (child) {
                     if (!writingFiles.includes(child.className)) {
@@ -835,9 +844,12 @@ export default () => [
                     return _ref2.apply(this, arguments);
                 };
             })());
-            const isNestedComponent = dir === componentDir;
-            let writingSelf;
 
+            // Check if a component is nested.
+            const isNestedComponent = dir === componentDir;
+
+            // Write the files.
+            let writingSelf;
             if (!writingFiles.includes(`${_this.className}.js`)) {
                 try {
                     yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].readFile(`${dir}/${_this.className}.js`);
@@ -852,6 +864,7 @@ export default () => [
             } catch (e) {
                 console.log(e);
             }
+
             return childFilePaths;
         })();
     }

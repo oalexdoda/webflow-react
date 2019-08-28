@@ -60,31 +60,35 @@ class ViewWriter extends Writer {
         const routesFilePath = `${dir}/../routes.js`;
         const childFilePaths = [indexFilePath, helpersFilePath, routesFilePath];
         ctrlsDir = path.relative(dir, ctrlsDir);
-        const routes = `
-import React from 'react';
-import { Route } from 'react-router-dom';
-import * as Views from './views';
 
-export default () => [
-  <Route key="route_index" path="/" component={Views.IndexView} exact />,
-  ${viewWriters
-      .map(
-          viewWriter =>
-              `<Route key="route_${viewWriter.className.replace(
-                  /view/gi,
-                  ''
-              )}" path="${
-                  viewWriter.parent ? `/${viewWriter.parent}` : ''
-              }/${viewWriter.className
-                  .replace(/view/gi, '')
-                  .split(/(?=[A-Z])/)
-                  .join('-')
-                  .toLowerCase()}" component={Views.${
-                  viewWriter.className
-              }} exact />`
-      )
-      .join(',\n  ')}
-]`;
+        // Prepare the "routes.js" template.
+        const routes = `
+            import React from 'react';
+            import { Route } from 'react-router-dom';
+            import * as Views from './views';
+
+            export default () => [
+            <Route key="route_index" path="/" component={Views.IndexView} exact />,
+            ${viewWriters
+                .map(
+                    viewWriter =>
+                        `<Route key="route_${viewWriter.className.replace(
+                            /view/gi,
+                            ''
+                        )}" path="${
+                            viewWriter.parent ? `/${viewWriter.parent}` : ''
+                        }/${viewWriter.className
+                            .replace(/view/gi, '')
+                            .split(/(?=[A-Z])/)
+                            .join('-')
+                            .toLowerCase()}" component={Views.${
+                            viewWriter.className
+                        }} exact />`
+                )
+                .join(',\n  ')}
+            ]`;
+
+        // Prepare the views "index.js" template.
         const index = viewWriters
             .map(viewWriter => {
                 return `export { default as ${viewWriter.className} } from './${viewWriter.className}'`;
@@ -350,8 +354,13 @@ export default () => [
     }
 
     async write(dir, componentDir, metaDir, stylesDir, ctrlsDir) {
+        // Set the file path.
         const filePath = `${dir}/${this.className}.js`;
+
+        // Set children file paths.
         const childFilePaths = [filePath];
+
+        // Set children writer.
         const writingChildren = this[_].children.map(async child => {
             if (!writingFiles.includes(child.className)) {
                 writingFiles.push(child.className);
@@ -365,9 +374,12 @@ export default () => [
                 childFilePaths.push(...filePaths);
             }
         });
-        const isNestedComponent = dir === componentDir;
-        let writingSelf;
 
+        // Check if a component is nested.
+        const isNestedComponent = dir === componentDir;
+
+        // Write the files.
+        let writingSelf;
         if (!writingFiles.includes(`${this.className}.js`)) {
             try {
                 await fs.readFile(`${dir}/${this.className}.js`);
@@ -391,6 +403,7 @@ export default () => [
         } catch (e) {
             console.log(e);
         }
+
         return childFilePaths;
     }
 
