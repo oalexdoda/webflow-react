@@ -1098,7 +1098,7 @@ function bindJSX(self, jsx, children = []) {
     // Open close
     return jsx
     // Replace attributes
-    .replace(/(wfr-a-)([\w_-]+)=(".*?")/g, (match, base) => match.replace(base, '').replace(/["]+/g, ''))
+    .replace(/(wfr-a-)([\w_-]+)=(".*?")/g, (match, base) => match.replace(base, '').replace(/["]+/g, '').replace('onsubmit', 'onSubmit'))
     // Open close
     .replace(/<([\w_-]+)-wfr-d-([\w_-]+)(.*?)>([^]*)<\/\1-wfr-d-\2>/g, (match, el, sock, attrs, children) => {
         // // attrs.forEach(attr => attr.replace('wfr-a-', ''));

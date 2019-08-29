@@ -688,7 +688,10 @@ function bindJSX(self, jsx, children = []) {
         jsx
             // Replace attributes
             .replace(/(wfr-a-)([\w_-]+)=(".*?")/g, (match, base) =>
-                match.replace(base, '').replace(/["]+/g, '')
+                match
+                    .replace(base, '')
+                    .replace(/["]+/g, '')
+                    .replace('onsubmit', 'onSubmit')
             )
             // Open close
             .replace(
