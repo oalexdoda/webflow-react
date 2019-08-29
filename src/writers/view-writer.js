@@ -36,7 +36,7 @@ const htmltojsx = new HTMLtoJSX({ createClass: false });
 //   return flatten;
 // };
 
-const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="/');
+const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="./static/');
 // const removeHtmlFromLinks = (html) => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/ig, '').replace(/href="/ig, 'href="/'))
 const removeHtmlFromLinks = html =>
     adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/gi, ''));
@@ -45,70 +45,19 @@ const removeHtmlFromLinks = html =>
 class ViewWriter extends Writer {
     static async writeAll(
         viewWriters,
-        dir,
+        pagesDir,
         componentDir,
         metaDir,
         stylesDir,
         ctrlsDir
     ) {
-        await mkdirp(dir);
+        await mkdirp(pagesDir);
         await mkdirp(componentDir);
         await mkdirp(stylesDir);
         await mkdirp(metaDir);
-        const indexFilePath = `${dir}/index.js`;
-        const helpersFilePath = `${dir}/../helpers.js`;
-        const routesFilePath = `${dir}/../routes.js`;
-        const childFilePaths = [indexFilePath, helpersFilePath, routesFilePath];
-        ctrlsDir = path.relative(dir, ctrlsDir);
-
-        // Prepare the "routes.js" template.
-        const routes = `
-            import React from 'react';
-            import { Route } from 'react-router-dom';
-            import * as Views from './views';
-
-            ${viewWriters
-                .map(
-                    viewWriter =>
-                        `export const ${viewWriter.className
-                            .replace(/view/gi, '')
-                            .toUpperCase()} = '${
-                            viewWriter.parent ? `/${viewWriter.parent}` : ''
-                        }/${viewWriter.className
-                            .replace(/view/gi, '')
-                            .split(/(?=[A-Z])/)
-                            .join('-')
-                            .toLowerCase()}';`
-                )
-                .join('\n  ')}            
-
-            export default () => [
-            <Route key="route_index" path="/" component={Views.IndexView.Controller} exact />,
-            ${viewWriters
-                .map(
-                    viewWriter =>
-                        `<Route key="route_${viewWriter.className.replace(
-                            /view/gi,
-                            ''
-                        )}" path="${
-                            viewWriter.parent ? `/${viewWriter.parent}` : ''
-                        }/${viewWriter.className
-                            .replace(/view/gi, '')
-                            .split(/(?=[A-Z])/)
-                            .join('-')
-                            .toLowerCase()}" component={Views.${
-                            viewWriter.className
-                        }.Controller} exact />`
-                )
-                .join(',\n  ')}
-            ]`;
-
-        // Prepare the views "index.js" template.
-        const index = viewWriters
-            .map(viewWriter => {
-                return `export { default as ${viewWriter.className} } from './${viewWriter.className}'`;
-            })
-            .join('\n');
+        const helpersFilePath = `${pagesDir}/../helpers.js`;
+        const childFilePaths = [helpersFilePath];
+        ctrlsDir = path.relative(pagesDir, ctrlsDir);
 
         const leanViewWriters = [];
         // viewWriters = flattenChildren(viewWriters);
@@ -124,7 +73,7 @@ class ViewWriter extends Writer {
         }
         leanViewWriters.forEach(async viewWriter => {
             const filePaths = await viewWriter.write(
-                dir,
+                pagesDir,
                 componentDir,
                 metaDir,
                 stylesDir,
@@ -133,11 +82,9 @@ class ViewWriter extends Writer {
             childFilePaths.push(...filePaths);
         });
 
-        const writtingRoutes = fs.writeFile(routesFilePath, freeLint(routes));
-        const writingIndex = fs.writeFile(indexFilePath, freeLint(index));
         const writingHelpers = fs.writeFile(helpersFilePath, raw.viewHelpers);
 
-        await Promise.all([writingIndex, writingHelpers, writtingRoutes]);
+        await Promise.all([writingHelpers]);
         return childFilePaths;
     }
 
@@ -177,7 +124,7 @@ class ViewWriter extends Writer {
                 .map(upperFirst)
                 .join(''),
             className: words
-                .concat('view')
+                // .concat('view')
                 .map(upperFirst)
                 .join(''),
             elName: words.map(word => word.toLowerCase()).join('-'),
@@ -250,10 +197,18 @@ class ViewWriter extends Writer {
 
         // Apply ignore rules AFTER child elements were plucked
         $('[wfr-ignore]').remove();
+
         // Empty inner HTML
         $('[wfr-empty]')
             .html('')
             .attr('wfr-empty', null);
+
+        // Default actions for forms.
+        $('form').each(function() {
+            if (!$(this).is('[action]')) {
+                $(this).attr('action', '/');
+            }
+        });
 
         this[_].scripts = [];
 
@@ -368,9 +323,9 @@ class ViewWriter extends Writer {
         this.source = options.source;
     }
 
-    async write(dir, componentDir, metaDir, stylesDir, ctrlsDir) {
+    async write(pagesDir, componentDir, metaDir, stylesDir, ctrlsDir) {
         // Set the file path.
-        const filePath = `${dir}/${this.className}.js`;
+        const filePath = `${pagesDir}/${this.className}.js`;
 
         // Set children file paths.
         const childFilePaths = [filePath];
@@ -391,21 +346,21 @@ class ViewWriter extends Writer {
         });
 
         // Check if a component is nested.
-        const isNestedComponent = dir === componentDir;
+        const isNestedComponent = pagesDir === componentDir;
 
         // Write the files.
         let writingSelf;
         if (!writingFiles.includes(`${this.className}.js`)) {
             try {
-                await fs.readFile(`${dir}/${this.className}.js`);
+                await fs.readFile(`${pagesDir}/${this.className}.js`);
             } catch (e) {
                 // pass
                 writingSelf = fs.writeFile(
-                    `${dir}/${this.className}.js`,
+                    `${pagesDir}/${this.className}.js`,
                     this[_].compose(
-                        path.relative(dir, componentDir),
-                        path.relative(dir, metaDir),
-                        path.relative(dir, stylesDir),
+                        path.relative(pagesDir, componentDir),
+                        path.relative(pagesDir, metaDir),
+                        path.relative(pagesDir, stylesDir),
                         ctrlsDir,
                         !isNestedComponent
                     )
@@ -475,79 +430,111 @@ class ViewWriter extends Writer {
 
     _compose(compDir, metaDir, stylesDir, ctrlsDir, shouldHaveStyles = true) {
         return freeLint(`
-      import React from 'react'
-      import { createScope, map, transformProxies } from '../helpers'
-      ${shouldHaveStyles ? `import "${stylesDir}/${this.className}.css"` : ''}
-      ==>${this[_].composeChildImports(compDir)}<==
+            import React from 'react'
 
-      let Controller
-
-      class ${this.className} extends React.Component {
-        static get Controller() {
-          if (Controller) return Controller
-
-          try {
-            Controller = require('${ctrlsDir}/${this.ctrlClassName}')
-            Controller = Controller.default || Controller
-
-            return Controller
-          }
-          catch (e) {
-            if (e.code == 'MODULE_NOT_FOUND') {
-              Controller = ${this.className}
-
-              return Controller
+            ${
+                // Import the Page wrapper if this is a page.
+                !this[_].isComponent ? `import Page from '../layout'` : ''
             }
 
-            throw e
-          }
-        }
-
-        render() {
-
-            const proxies = Controller !== ${
-                this.className
-            } ? transformProxies(this.props) : {
-                ==>${this[_].composeProxiesDefault()}<==
+            ${
+                // Add helpers if the component has data sockets.
+                this[_].sockets.length
+                    ? `import { createScope, map, transformProxies } from '../helpers'`
+                    : ''
             }
 
-          ${
-              this[_].isComponent
-                  ? ''
-                  : `
-          let Metadata
-          try {
-            Metadata = require("${metaDir}/${this.metaClassName}")
-            Metadata = Metadata.default || Metadata
-          } catch (e) {
-            // pass
-            Metadata = null;
-          }
-          try {
-            Metadata = require("${metaDir}/defaultMeta")
-            Metadata = Metadata.default || Metadata
-          } catch (e) {
-            // pass
-            Metadata = null;
-          }
-          `
-          }
+            ${
+                // Add CSS imports if the page has styles.
+                shouldHaveStyles
+                    ? `import "${stylesDir}/${this.className}.css"\n`
+                    : '\n'
+            }
 
+            ==>${this[_].composeChildImports(compDir)}<==
 
-          return (
-            <React.Fragment>
-              ${
-                  !this[_].isComponent
-                      ? '{Metadata ? <Metadata {...this.props} /> : null}'
-                      : ''
-              }
-              ==>${this.jsx}<==
-            </React.Fragment>
-          )
+            let Controller
+
+            class ${this.className} extends React.Component {
+                static get Controller() {
+                if (Controller) return Controller
+
+                try {
+                    Controller = require('${ctrlsDir}/${this.ctrlClassName}')
+                    Controller = Controller.default || Controller
+
+                    return Controller
+                }
+                catch (e) {
+                    if (e.code == 'MODULE_NOT_FOUND') {
+                    Controller = ${this.className}
+
+                    return Controller
+                    }
+
+                    throw e
+                }
+            }
+
+            render() {
+
+                ${
+                    // Render the proxies if the component has data sockets.
+                    this[_].sockets.length
+                        ? `const proxies = Controller !== ${
+                              this.className
+                          } ? transformProxies(this.props) : {
+                    ==>${this[_].composeProxiesDefault()}<==
+                }`
+                        : ''
+                }
+
+                ${
+                    // Render metadata if this is a page.
+                    this[_].isComponent
+                        ? ''
+                        : `
+                            let Metadata
+                            try {
+                                Metadata = require("${metaDir}/${this.metaClassName}")
+                                Metadata = Metadata.default || Metadata
+                            } catch (e) {
+                                // pass
+                                Metadata = null;
+                            }
+                            try {
+                                Metadata = require("${metaDir}/defaultMeta")
+                                Metadata = Metadata.default || Metadata
+                            } catch (e) {
+                                // pass
+                                Metadata = null;
+                            }
+                        `
+                }
+
+                return (
+                    
+                        ${
+                            // Render metadata if this is a page.
+                            !this[_].isComponent
+                                ? `
+                                <Page>
+                                    {Metadata ? <Metadata {...this.props} /> : null}
+                                    ==>${this.jsx}<==
+                                </Page>`
+                                : `
+                                <React.Fragment>
+                                    ==>${this.jsx}<==
+                                </React.Fragment>
+                            `
+                        }
+                        
+                    
+                )
+            }
         }
-      }
 
-      export default ${this.className}
+        export default ${this.className}
     `);
     }
 
@@ -612,7 +599,7 @@ class ViewWriter extends Writer {
         // Line skip
         imports.push('');
 
-        return imports.join('\n');
+        return imports.length ? imports.join('\n') : '';
     }
 
     _composeScriptsDeclerations() {
@@ -709,6 +696,7 @@ function bindJSX(self, jsx, children = []) {
                     .replace(/["]+/g, '')
                     .replace('onsubmit', 'onSubmit')
                     .replace('onclick', 'onClick')
+                    .replace('autofocus', 'autoFocus')
             )
             // Open close
             .replace(

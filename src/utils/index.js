@@ -61,13 +61,7 @@ export const freeText = text => {
 
 // Calls freeText() and disables lint
 export const freeLint = script => {
-    return freeText(`
-    /* eslint-disable */
-
-    ==>${freeText(script)}<==
-
-    /* eslint-enable */
-  `);
+    return freeText(`==>${freeText(script)}<==`);
 };
 
 // Calls freeLint() and ensures that 'this' is represented by window

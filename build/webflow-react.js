@@ -545,44 +545,20 @@ const htmltojsx = new htmltojsx__WEBPACK_IMPORTED_MODULE_1___default.a({ createC
 //   return flatten;
 // };
 
-const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="/');
+const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="./static/');
 // const removeHtmlFromLinks = (html) => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/ig, '').replace(/href="/ig, 'href="/'))
 const removeHtmlFromLinks = html => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/gi, ''));
 
 let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])(_), _dec(_class = class ViewWriter extends _writer__WEBPACK_IMPORTED_MODULE_7__["default"] {
-    static writeAll(viewWriters, dir, componentDir, metaDir, stylesDir, ctrlsDir) {
+    static writeAll(viewWriters, pagesDir, componentDir, metaDir, stylesDir, ctrlsDir) {
         return _asyncToGenerator(function* () {
-            yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(dir);
+            yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(pagesDir);
             yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(componentDir);
             yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(stylesDir);
             yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(metaDir);
-            const indexFilePath = `${dir}/index.js`;
-            const helpersFilePath = `${dir}/../helpers.js`;
-            const routesFilePath = `${dir}/../routes.js`;
-            const childFilePaths = [indexFilePath, helpersFilePath, routesFilePath];
-            ctrlsDir = path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, ctrlsDir);
-
-            // Prepare the "routes.js" template.
-            const routes = `
-            import React from 'react';
-            import { Route } from 'react-router-dom';
-            import * as Views from './views';
-
-            ${viewWriters.map(function (viewWriter) {
-                return `export const ${viewWriter.className.replace(/view/gi, '').toUpperCase()} = '${viewWriter.parent ? `/${viewWriter.parent}` : ''}/${viewWriter.className.replace(/view/gi, '').split(/(?=[A-Z])/).join('-').toLowerCase()}';`;
-            }).join('\n  ')}            
-
-            export default () => [
-            <Route key="route_index" path="/" component={Views.IndexView.Controller} exact />,
-            ${viewWriters.map(function (viewWriter) {
-                return `<Route key="route_${viewWriter.className.replace(/view/gi, '')}" path="${viewWriter.parent ? `/${viewWriter.parent}` : ''}/${viewWriter.className.replace(/view/gi, '').split(/(?=[A-Z])/).join('-').toLowerCase()}" component={Views.${viewWriter.className}.Controller} exact />`;
-            }).join(',\n  ')}
-            ]`;
-
-            // Prepare the views "index.js" template.
-            const index = viewWriters.map(function (viewWriter) {
-                return `export { default as ${viewWriter.className} } from './${viewWriter.className}'`;
-            }).join('\n');
+            const helpersFilePath = `${pagesDir}/../helpers.js`;
+            const childFilePaths = [helpersFilePath];
+            ctrlsDir = path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, ctrlsDir);
 
             const leanViewWriters = [];
             // viewWriters = flattenChildren(viewWriters);
@@ -596,7 +572,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
             }
             leanViewWriters.forEach((() => {
                 var _ref = _asyncToGenerator(function* (viewWriter) {
-                    const filePaths = yield viewWriter.write(dir, componentDir, metaDir, stylesDir, ctrlsDir);
+                    const filePaths = yield viewWriter.write(pagesDir, componentDir, metaDir, stylesDir, ctrlsDir);
                     childFilePaths.push(...filePaths);
                 });
 
@@ -605,11 +581,9 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
                 };
             })());
 
-            const writtingRoutes = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(routesFilePath, Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(routes));
-            const writingIndex = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(indexFilePath, Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(index));
             const writingHelpers = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(helpersFilePath, _raw__WEBPACK_IMPORTED_MODULE_6__["default"].viewHelpers);
 
-            yield Promise.all([writingIndex, writingHelpers, writtingRoutes]);
+            yield Promise.all([writingHelpers]);
             return childFilePaths;
         })();
     }
@@ -643,7 +617,9 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         Object.assign(this[_], {
             ctrlClassName: words.concat('controller').map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(''),
             metaClassName: words.concat('meta').map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(''),
-            className: words.concat('view').map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(''),
+            className: words
+            // .concat('view')
+            .map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(''),
             elName: words.map(word => word.toLowerCase()).join('-'),
             name: words.concat('view').map(word => word.toLowerCase()).join('-')
         });
@@ -711,8 +687,16 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
 
         // Apply ignore rules AFTER child elements were plucked
         $('[wfr-ignore]').remove();
+
         // Empty inner HTML
         $('[wfr-empty]').html('').attr('wfr-empty', null);
+
+        // Default actions for forms.
+        $('form').each(function () {
+            if (!$(this).is('[action]')) {
+                $(this).attr('action', '/');
+            }
+        });
 
         this[_].scripts = [];
 
@@ -824,12 +808,12 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         this.source = options.source;
     }
 
-    write(dir, componentDir, metaDir, stylesDir, ctrlsDir) {
+    write(pagesDir, componentDir, metaDir, stylesDir, ctrlsDir) {
         var _this = this;
 
         return _asyncToGenerator(function* () {
             // Set the file path.
-            const filePath = `${dir}/${_this.className}.js`;
+            const filePath = `${pagesDir}/${_this.className}.js`;
 
             // Set children file paths.
             const childFilePaths = [filePath];
@@ -850,16 +834,16 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
             })());
 
             // Check if a component is nested.
-            const isNestedComponent = dir === componentDir;
+            const isNestedComponent = pagesDir === componentDir;
 
             // Write the files.
             let writingSelf;
             if (!writingFiles.includes(`${_this.className}.js`)) {
                 try {
-                    yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].readFile(`${dir}/${_this.className}.js`);
+                    yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].readFile(`${pagesDir}/${_this.className}.js`);
                 } catch (e) {
                     // pass
-                    writingSelf = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${dir}/${_this.className}.js`, _this[_].compose(path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, componentDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, metaDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(dir, stylesDir), ctrlsDir, !isNestedComponent));
+                    writingSelf = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${pagesDir}/${_this.className}.js`, _this[_].compose(path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, componentDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, metaDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, stylesDir), ctrlsDir, !isNestedComponent));
                 }
             }
 
@@ -923,69 +907,93 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
 
     _compose(compDir, metaDir, stylesDir, ctrlsDir, shouldHaveStyles = true) {
         return Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(`
-      import React from 'react'
-      import { createScope, map, transformProxies } from '../helpers'
-      ${shouldHaveStyles ? `import "${stylesDir}/${this.className}.css"` : ''}
-      ==>${this[_].composeChildImports(compDir)}<==
+            import React from 'react'
 
-      let Controller
+            ${
+        // Import the Page wrapper if this is a page.
+        !this[_].isComponent ? `import Page from '../layout'` : ''}
 
-      class ${this.className} extends React.Component {
-        static get Controller() {
-          if (Controller) return Controller
+            ${
+        // Add helpers if the component has data sockets.
+        this[_].sockets.length ? `import { createScope, map, transformProxies } from '../helpers'` : ''}
 
-          try {
-            Controller = require('${ctrlsDir}/${this.ctrlClassName}')
-            Controller = Controller.default || Controller
+            ${
+        // Add CSS imports if the page has styles.
+        shouldHaveStyles ? `import "${stylesDir}/${this.className}.css"\n` : '\n'}
 
-            return Controller
-          }
-          catch (e) {
-            if (e.code == 'MODULE_NOT_FOUND') {
-              Controller = ${this.className}
+            ==>${this[_].composeChildImports(compDir)}<==
 
-              return Controller
+            let Controller
+
+            class ${this.className} extends React.Component {
+                static get Controller() {
+                if (Controller) return Controller
+
+                try {
+                    Controller = require('${ctrlsDir}/${this.ctrlClassName}')
+                    Controller = Controller.default || Controller
+
+                    return Controller
+                }
+                catch (e) {
+                    if (e.code == 'MODULE_NOT_FOUND') {
+                    Controller = ${this.className}
+
+                    return Controller
+                    }
+
+                    throw e
+                }
             }
 
-            throw e
-          }
-        }
+            render() {
 
-        render() {
+                ${
+        // Render the proxies if the component has data sockets.
+        this[_].sockets.length ? `const proxies = Controller !== ${this.className} ? transformProxies(this.props) : {
+                    ==>${this[_].composeProxiesDefault()}<==
+                }` : ''}
 
-            const proxies = Controller !== ${this.className} ? transformProxies(this.props) : {
-                ==>${this[_].composeProxiesDefault()}<==
+                ${
+        // Render metadata if this is a page.
+        this[_].isComponent ? '' : `
+                            let Metadata
+                            try {
+                                Metadata = require("${metaDir}/${this.metaClassName}")
+                                Metadata = Metadata.default || Metadata
+                            } catch (e) {
+                                // pass
+                                Metadata = null;
+                            }
+                            try {
+                                Metadata = require("${metaDir}/defaultMeta")
+                                Metadata = Metadata.default || Metadata
+                            } catch (e) {
+                                // pass
+                                Metadata = null;
+                            }
+                        `}
+
+                return (
+                    
+                        ${
+        // Render metadata if this is a page.
+        !this[_].isComponent ? `
+                                <Page>
+                                    {Metadata ? <Metadata {...this.props} /> : null}
+                                    ==>${this.jsx}<==
+                                </Page>` : `
+                                <React.Fragment>
+                                    ==>${this.jsx}<==
+                                </React.Fragment>
+                            `}
+                        
+                    
+                )
             }
-
-          ${this[_].isComponent ? '' : `
-          let Metadata
-          try {
-            Metadata = require("${metaDir}/${this.metaClassName}")
-            Metadata = Metadata.default || Metadata
-          } catch (e) {
-            // pass
-            Metadata = null;
-          }
-          try {
-            Metadata = require("${metaDir}/defaultMeta")
-            Metadata = Metadata.default || Metadata
-          } catch (e) {
-            // pass
-            Metadata = null;
-          }
-          `}
-
-
-          return (
-            <React.Fragment>
-              ${!this[_].isComponent ? '{Metadata ? <Metadata {...this.props} /> : null}' : ''}
-              ==>${this.jsx}<==
-            </React.Fragment>
-          )
         }
-      }
 
-      export default ${this.className}
+        export default ${this.className}
     `);
     }
 
@@ -1042,7 +1050,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         // Line skip
         imports.push('');
 
-        return imports.join('\n');
+        return imports.length ? imports.join('\n') : '';
     }
 
     _composeScriptsDeclerations() {
@@ -1103,7 +1111,7 @@ function bindJSX(self, jsx, children = []) {
     // Open close
     return jsx
     // Replace attributes
-    .replace(/(wfr-a-)([\w_-]+)=(".*?")/g, (match, base) => match.replace(base, '').replace(/["]+/g, '').replace('onsubmit', 'onSubmit').replace('onclick', 'onClick'))
+    .replace(/(wfr-a-)([\w_-]+)=(".*?")/g, (match, base) => match.replace(base, '').replace(/["]+/g, '').replace('onsubmit', 'onSubmit').replace('onclick', 'onClick').replace('autofocus', 'autoFocus'))
     // Open close
     .replace(/<([\w_-]+)-wfr-d-([\w_-]+)(.*?)>([^]*)<\/\1-wfr-d-\2>/g, (match, el, sock, attrs, children) => {
         // // attrs.forEach(attr => attr.replace('wfr-a-', ''));
@@ -1248,13 +1256,7 @@ const freeText = text => {
 
 // Calls freeText() and disables lint
 const freeLint = script => {
-    return freeText(`
-    /* eslint-disable */
-
-    ==>${freeText(script)}<==
-
-    /* eslint-enable */
-  `);
+    return freeText(`==>${freeText(script)}<==`);
 };
 
 // Calls freeLint() and ensures that 'this' is represented by window

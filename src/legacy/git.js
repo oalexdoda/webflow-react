@@ -31,7 +31,6 @@ export const add = async (files, config) => {
     await execa('git', [
         'add',
         ...files,
-        `${config.output.src.root}/routes.js`,
         config.output.src.views,
         config.output.src.components,
         config.output.src.styles,
@@ -40,7 +39,6 @@ export const add = async (files, config) => {
 
     return [
         ...files,
-        `${config.output.src.root}/routes.js`,
         config.output.src.views,
         config.output.src.components,
         config.output.src.styles,
@@ -117,10 +115,6 @@ export const removeWFRFiles = async config => {
         //   return fs.unlink(`${root}/${file}`);
         // }),
 
-        new Promise(res =>
-            rimraf(`${config.output.src.root}/routes.js`, () => res())
-        ),
-
         new Promise(res => rimraf(config.output.src.views, () => res())),
         new Promise(res => rimraf(config.output.src.components, () => res())),
         new Promise(res => rimraf(config.output.src.styles, () => res())),
@@ -128,7 +122,6 @@ export const removeWFRFiles = async config => {
 
     // return [...files||[]];
     return [
-        `${config.output.src.root}/routes.js`,
         config.output.src.views,
         config.output.src.components,
         config.output.src.styles,
