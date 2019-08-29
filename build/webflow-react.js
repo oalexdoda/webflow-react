@@ -568,10 +568,14 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
             import { Route } from 'react-router-dom';
             import * as Views from './views';
 
-            export default () => [
-            <Route key="route_index" path="/" component={Views.IndexView} exact />,
             ${viewWriters.map(function (viewWriter) {
-                return `<Route key="route_${viewWriter.className.replace(/view/gi, '')}" path="${viewWriter.parent ? `/${viewWriter.parent}` : ''}/${viewWriter.className.replace(/view/gi, '').split(/(?=[A-Z])/).join('-').toLowerCase()}" component={Views.${viewWriter.className}} exact />`;
+                return `export const ${viewWriter.className.replace(/view/gi, '').toUpperCase()} = '${viewWriter.parent ? `/${viewWriter.parent}` : ''}/${viewWriter.className.replace(/view/gi, '').split(/(?=[A-Z])/).join('-').toLowerCase()}';`;
+            }).join('\n  ')}            
+
+            export default () => [
+            <Route key="route_index" path="/" component={Views.IndexView.Controller} exact />,
+            ${viewWriters.map(function (viewWriter) {
+                return `<Route key="route_${viewWriter.className.replace(/view/gi, '')}" path="${viewWriter.parent ? `/${viewWriter.parent}` : ''}/${viewWriter.className.replace(/view/gi, '').split(/(?=[A-Z])/).join('-').toLowerCase()}" component={Views.${viewWriter.className}.Controller} exact />`;
             }).join(',\n  ')}
             ]`;
 
@@ -948,9 +952,10 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         }
 
         render() {
-          const proxies = Controller !== ${this.className} ? transformProxies(this.props) : {
-            ==>${this[_].composeProxiesDefault()}<==
-          }
+
+            const proxies = Controller !== ${this.className} ? transformProxies(this.props) : {
+                ==>${this[_].composeProxiesDefault()}<==
+            }
 
           ${this[_].isComponent ? '' : `
           let Metadata
