@@ -692,6 +692,7 @@ function bindJSX(self, jsx, children = []) {
                     .replace(base, '')
                     .replace(/["]+/g, '')
                     .replace('onsubmit', 'onSubmit')
+                    .replace('onclick', 'onClick')
             )
             // Open close
             .replace(
