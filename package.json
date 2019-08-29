@@ -1,6 +1,6 @@
 {
     "name": "webflow-react",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "description": "A CLI tool to Migrate a Webflow project into a React app.",
     "author": "abruptive",
     "license": "Apache 2.0",
@@ -11,6 +11,10 @@
     "scripts": {
         "build": "webpack --config webpack.config.js",
         "prepublish": "npm run build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Abruptive/webflow-react"
     },
     "dependencies": {
         "cheerio": "^1.0.0-rc.2",
