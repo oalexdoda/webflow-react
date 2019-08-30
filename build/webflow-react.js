@@ -812,8 +812,13 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         var _this = this;
 
         return _asyncToGenerator(function* () {
+            // Check if the artefact is a "page" or "component".
+            const isComponent = pagesDir === componentDir;
+
+            const fileName = isComponent ? _this.className : _this.className.toLowerCase();
+
             // Set the file path.
-            const filePath = `${pagesDir}/${_this.className}.js`;
+            const filePath = `${pagesDir}/${fileName}.js`;
 
             // Set children file paths.
             const childFilePaths = [filePath];
@@ -833,17 +838,13 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
                 };
             })());
 
-            // Check if a component is nested.
-            const isNestedComponent = pagesDir === componentDir;
-
             // Write the files.
             let writingSelf;
-            if (!writingFiles.includes(`${_this.className}.js`)) {
+            if (!writingFiles.includes(`${fileName}.js`)) {
                 try {
-                    yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].readFile(`${pagesDir}/${_this.className}.js`);
+                    yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].readFile(`${pagesDir}/${fileName}.js`);
                 } catch (e) {
-                    // pass
-                    writingSelf = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${pagesDir}/${_this.className}.js`, _this[_].compose(path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, componentDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, metaDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, stylesDir), ctrlsDir, !isNestedComponent));
+                    writingSelf = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${pagesDir}/${fileName}.js`, _this[_].compose(path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, componentDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, metaDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, stylesDir), ctrlsDir, !isComponent));
                 }
             }
 
@@ -1007,10 +1008,6 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         }).filter(Boolean);
 
         let css = '';
-
-        // css += hrefs.map((href) => {
-        //   return `@import url(${href});`
-        // }).join('\n')
 
         css += '\n\n';
 

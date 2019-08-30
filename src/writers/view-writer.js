@@ -324,8 +324,15 @@ class ViewWriter extends Writer {
     }
 
     async write(pagesDir, componentDir, metaDir, stylesDir, ctrlsDir) {
+        // Check if the artefact is a "page" or "component".
+        const isComponent = pagesDir === componentDir;
+
+        const fileName = isComponent
+            ? this.className
+            : this.className.toLowerCase();
+
         // Set the file path.
-        const filePath = `${pagesDir}/${this.className}.js`;
+        const filePath = `${pagesDir}/${fileName}.js`;
 
         // Set children file paths.
         const childFilePaths = [filePath];
@@ -345,24 +352,20 @@ class ViewWriter extends Writer {
             }
         });
 
-        // Check if a component is nested.
-        const isNestedComponent = pagesDir === componentDir;
-
         // Write the files.
         let writingSelf;
-        if (!writingFiles.includes(`${this.className}.js`)) {
+        if (!writingFiles.includes(`${fileName}.js`)) {
             try {
-                await fs.readFile(`${pagesDir}/${this.className}.js`);
+                await fs.readFile(`${pagesDir}/${fileName}.js`);
             } catch (e) {
-                // pass
                 writingSelf = fs.writeFile(
-                    `${pagesDir}/${this.className}.js`,
+                    `${pagesDir}/${fileName}.js`,
                     this[_].compose(
                         path.relative(pagesDir, componentDir),
                         path.relative(pagesDir, metaDir),
                         path.relative(pagesDir, stylesDir),
                         ctrlsDir,
-                        !isNestedComponent
+                        !isComponent
                     )
                 );
             }
@@ -550,10 +553,6 @@ class ViewWriter extends Writer {
             .filter(Boolean);
 
         let css = '';
-
-        // css += hrefs.map((href) => {
-        //   return `@import url(${href});`
-        // }).join('\n')
 
         css += '\n\n';
 
