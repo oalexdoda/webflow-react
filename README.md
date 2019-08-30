@@ -1,6 +1,6 @@
 # Overview
 
-*Webflow React from Abruptive* is a CLI tool that helps designers & developers convert their Webflow projects to React.
+*Webflow React from Abruptive* is a CLI tool that helps designers & developers convert their Webflow projects to Next.js & React.
 
 ## Requirements
 
@@ -49,34 +49,32 @@ This commit includes all the changes that Webflor React has made, and shouldn't 
 
 The commit consists of the following files (regardless if they were added, modified or deleted):
 
-- **public/** (public assets which should be served by our app's server)
+- **static/** (public assets which should be served by our app's server)
   - **images/**
   - **fonts/**
   - **css/**
-
-- **src/**
-  - **scripts/** (scripts that should be imported in index.js)
-  - **styles/** (css files that should be imported in index.js)
-  - **views/** (contains ConsultFormView - further explanation below)
+- **scripts/** (scripts that should be imported in index.js)
+- **styles/** (css files that should be imported in index.js)
+- **pages/** (contains ConsultForm - further explanation below)
 
 ## Example
 
 ```js
 import React from 'react'
-import ConsultFormView from '../views/ConsultFormView'
+import ConsultForm from '../views/ConsultForm'
 
 class ConsultFormController extends React.Component {
   state = {}
 
   render() {
     return (
-      <ConsultFormView>
+      <ConsultForm>
         <name onChange={this.setName} />
         <phone onChange={this.setPhone} />
         <email onChange={this.setEmail} />
         <description onChange={this.setDescription} />
         <submit onClick={this.submit} />
-      </ConsultFormView>
+      </ConsultForm>
     )
   }
 
@@ -127,11 +125,11 @@ The output can be controlled using a config file named `wfr.config.js` which sho
 - **input (string)** - The input dir for the Webflow exported files. Defaults to `.webflow` dir in the root of the project.
 
 - **output (string/object)** - If a string was provided, the output will be mapped to the specified dir. If an object, each key in the object will map its asset type to the specified dir in the value. The object has the following schema:
-  - **public (string)** - Public dir. Defaults to `public`.
+  - **public (string)** - Public dir. Defaults to `static`.
   - **src (string/object)** - Source dir. If a string is provided, all its content will be mapped to the specified dir, otherwise the mapping will be done according to the following object:
-    - **scripts (string)** - Scripts dir. Defaults to `src/scripts`.
-    - **styles (string)** - Scripts dir. Defaults to `src/styles`.
-    - **views (string)** - Scripts dir. Defaults to `src/views`.
+    - **scripts (string)** - Scripts dir. Defaults to `scripts`.
+    - **styles (string)** - Scripts dir. Defaults to `styles`.
+    - **pages (string)** - Scripts dir. Defaults to `pages`.
 
 Alternatively, you may provide (extra) options through the command line like the following:
 
