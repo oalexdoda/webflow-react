@@ -326,13 +326,10 @@ class ViewWriter extends Writer {
     async write(pagesDir, componentDir, metaDir, stylesDir, ctrlsDir) {
         // Check if the artefact is a "page" or "component".
         const isComponent = pagesDir === componentDir;
-
-        const fileName = isComponent
-            ? this.className
-            : this.className.toLowerCase();
+        const fileName = this.className;
 
         // Set the file path.
-        const filePath = `${pagesDir}/${fileName}.js`;
+        const filePath = `${pagesDir}/${fileName}/index.js`;
 
         // Set children file paths.
         const childFilePaths = [filePath];
@@ -354,12 +351,13 @@ class ViewWriter extends Writer {
 
         // Write the files.
         let writingSelf;
-        if (!writingFiles.includes(`${fileName}.js`)) {
+        if (!writingFiles.includes(`${fileName}/index.js`)) {
             try {
-                await fs.readFile(`${pagesDir}/${fileName}.js`);
+                await mkdirp(pagesDir + '/' + this.className);
+                await fs.readFile(`${pagesDir}/${fileName}/index.js`);
             } catch (e) {
                 writingSelf = fs.writeFile(
-                    `${pagesDir}/${fileName}.js`,
+                    `${pagesDir}/${fileName}/index.js`,
                     this[_].compose(
                         path.relative(pagesDir, componentDir),
                         path.relative(pagesDir, metaDir),
@@ -380,7 +378,7 @@ class ViewWriter extends Writer {
         return childFilePaths;
     }
 
-    async setStyle(href, content, stylesDir) {
+    async setStyle(href, content, viewsDir) {
         let type;
         let body;
 
@@ -419,11 +417,11 @@ class ViewWriter extends Writer {
                 return sheet;
             })
             .join('\n\n');
-        if (!stylesDir || !css.length) return true;
+        if (!viewsDir || !css.length) return true;
         try {
-            await mkdirp(stylesDir);
+            await mkdirp(viewsDir + '/' + this.className + '/styles');
             await fs.writeFile(
-                `${stylesDir}/${this.className}.css`,
+                `${viewsDir}/${this.className}/styles/index.css`,
                 escape(css.trim())
             );
         } catch (e) {
@@ -449,9 +447,7 @@ class ViewWriter extends Writer {
 
             ${
                 // Add CSS imports if the page has styles.
-                shouldHaveStyles
-                    ? `import "${stylesDir}/${this.className}.css"\n`
-                    : '\n'
+                shouldHaveStyles ? `import "./styles/index.css"\n` : '\n'
             }
 
             ==>${this[_].composeChildImports(compDir)}<==

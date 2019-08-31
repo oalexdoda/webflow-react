@@ -124,7 +124,7 @@ const transpileHTMLFile = async (
 
     setScripts(scriptWriter, $head, $);
 
-    setStyles(viewWriter, styleWriter, $head, $, config.output.src.styles);
+    setStyles(viewWriter, styleWriter, $head, $, config.output.src.views);
     setHTML(viewWriter, $body, $);
 
     return viewWriter;
@@ -163,7 +163,7 @@ const setScripts = (scriptWriter, $head) => {
     });
 };
 
-const setStyles = (viewWriter, styleWriter, $head, _, stylesDir) => {
+const setStyles = (viewWriter, styleWriter, $head, _, viewsDir) => {
     let $styles;
 
     $styles = $head.find('link[rel="stylesheet"][type="text/css"]');
@@ -171,7 +171,7 @@ const setStyles = (viewWriter, styleWriter, $head, _, stylesDir) => {
     $styles.each((i, style) => {
         const $style = $head.find(style);
 
-        viewWriter.setStyle($style.attr('href'), $style.html(), stylesDir);
+        viewWriter.setStyle($style.attr('href'), $style.html(), viewsDir);
         styleWriter.setStyle($style.attr('href'), $style.html());
     });
 
@@ -180,7 +180,7 @@ const setStyles = (viewWriter, styleWriter, $head, _, stylesDir) => {
     $styles.each((i, style) => {
         const $style = $head.find(style);
 
-        viewWriter.setStyle($style.attr('href'), $style.html(), stylesDir);
+        viewWriter.setStyle($style.attr('href'), $style.html(), viewsDir);
         styleWriter.setStyle($style.attr('href'), $style.html());
     });
 };

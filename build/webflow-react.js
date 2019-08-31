@@ -219,7 +219,7 @@ const transpileHTMLFile = (() => {
 
         setScripts(scriptWriter, $head, $);
 
-        setStyles(viewWriter, styleWriter, $head, $, config.output.src.styles);
+        setStyles(viewWriter, styleWriter, $head, $, config.output.src.views);
         setHTML(viewWriter, $body, $);
 
         return viewWriter;
@@ -264,7 +264,7 @@ const setScripts = (scriptWriter, $head) => {
     });
 };
 
-const setStyles = (viewWriter, styleWriter, $head, _, stylesDir) => {
+const setStyles = (viewWriter, styleWriter, $head, _, viewsDir) => {
     let $styles;
 
     $styles = $head.find('link[rel="stylesheet"][type="text/css"]');
@@ -272,7 +272,7 @@ const setStyles = (viewWriter, styleWriter, $head, _, stylesDir) => {
     $styles.each((i, style) => {
         const $style = $head.find(style);
 
-        viewWriter.setStyle($style.attr('href'), $style.html(), stylesDir);
+        viewWriter.setStyle($style.attr('href'), $style.html(), viewsDir);
         styleWriter.setStyle($style.attr('href'), $style.html());
     });
 
@@ -281,7 +281,7 @@ const setStyles = (viewWriter, styleWriter, $head, _, stylesDir) => {
     $styles.each((i, style) => {
         const $style = $head.find(style);
 
-        viewWriter.setStyle($style.attr('href'), $style.html(), stylesDir);
+        viewWriter.setStyle($style.attr('href'), $style.html(), viewsDir);
         styleWriter.setStyle($style.attr('href'), $style.html());
     });
 };
@@ -814,11 +814,10 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         return _asyncToGenerator(function* () {
             // Check if the artefact is a "page" or "component".
             const isComponent = pagesDir === componentDir;
-
-            const fileName = isComponent ? _this.className : _this.className.toLowerCase();
+            const fileName = _this.className;
 
             // Set the file path.
-            const filePath = `${pagesDir}/${fileName}.js`;
+            const filePath = `${pagesDir}/${fileName}/index.js`;
 
             // Set children file paths.
             const childFilePaths = [filePath];
@@ -840,11 +839,12 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
 
             // Write the files.
             let writingSelf;
-            if (!writingFiles.includes(`${fileName}.js`)) {
+            if (!writingFiles.includes(`${fileName}/index.js`)) {
                 try {
-                    yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].readFile(`${pagesDir}/${fileName}.js`);
+                    yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(pagesDir + '/' + _this.className);
+                    yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].readFile(`${pagesDir}/${fileName}/index.js`);
                 } catch (e) {
-                    writingSelf = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${pagesDir}/${fileName}.js`, _this[_].compose(path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, componentDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, metaDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, stylesDir), ctrlsDir, !isComponent));
+                    writingSelf = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${pagesDir}/${fileName}/index.js`, _this[_].compose(path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, componentDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, metaDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, stylesDir), ctrlsDir, !isComponent));
                 }
             }
 
@@ -858,7 +858,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         })();
     }
 
-    setStyle(href, content, stylesDir) {
+    setStyle(href, content, viewsDir) {
         var _this2 = this;
 
         return _asyncToGenerator(function* () {
@@ -896,10 +896,10 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
             css += sheets.map(function (sheet) {
                 return sheet;
             }).join('\n\n');
-            if (!stylesDir || !css.length) return true;
+            if (!viewsDir || !css.length) return true;
             try {
-                yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(stylesDir);
-                yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${stylesDir}/${_this2.className}.css`, Object(_utils__WEBPACK_IMPORTED_MODULE_8__["escape"])(css.trim()));
+                yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(viewsDir + '/' + _this2.className + '/styles');
+                yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${viewsDir}/${_this2.className}/styles/index.css`, Object(_utils__WEBPACK_IMPORTED_MODULE_8__["escape"])(css.trim()));
             } catch (e) {
                 console.log(e);
             }
@@ -920,7 +920,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
 
             ${
         // Add CSS imports if the page has styles.
-        shouldHaveStyles ? `import "${stylesDir}/${this.className}.css"\n` : '\n'}
+        shouldHaveStyles ? `import "./styles/index.css"\n` : '\n'}
 
             ==>${this[_].composeChildImports(compDir)}<==
 
