@@ -169,7 +169,7 @@ const transpile = (() => {
             return transpileHTMLFile(config, htmlFile, scriptWriter, styleWriter);
         });
         const viewWriters = yield Promise.all(transpilingHTMLFiles);
-        const writingFiles = Promise.all([_writers__WEBPACK_IMPORTED_MODULE_3__["ViewWriter"].writeAll(viewWriters, config.output.src.views, config.output.src.components, config.output.src.meta, config.output.src.styles, config.output.src.controllers).then(function (paths) {
+        const writingFiles = Promise.all([_writers__WEBPACK_IMPORTED_MODULE_3__["ViewWriter"].writeAll(viewWriters, config.output.src.views, config.output.src.components, config.output.src.meta, config.output.src.layout, config.output.src.styles, config.output.src.controllers).then(function (paths) {
             return outputFiles.push(...paths);
         }), scriptWriter.write(config.output.src.scripts).then(function (paths) {
             return outputFiles.push(...paths);
@@ -218,7 +218,6 @@ const transpileHTMLFile = (() => {
         });
 
         setScripts(scriptWriter, $head, $);
-
         setStyles(viewWriter, styleWriter, $head, $, config.output.src.views);
         setHTML(viewWriter, $body, $);
 
@@ -550,12 +549,15 @@ const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="./static/');
 const removeHtmlFromLinks = html => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/gi, ''));
 
 let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])(_), _dec(_class = class ViewWriter extends _writer__WEBPACK_IMPORTED_MODULE_7__["default"] {
-    static writeAll(viewWriters, pagesDir, componentDir, metaDir, stylesDir, ctrlsDir) {
+    static writeAll(viewWriters, pagesDir, componentDir, metaDir, layoutDir, stylesDir, ctrlsDir) {
         return _asyncToGenerator(function* () {
+            // Create the directories if they do not exist.
             yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(pagesDir);
             yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(componentDir);
+            yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(layoutDir);
             yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(stylesDir);
             yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(metaDir);
+
             const helpersFilePath = `${pagesDir}/../helpers.js`;
             const childFilePaths = [helpersFilePath];
             ctrlsDir = path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, ctrlsDir);

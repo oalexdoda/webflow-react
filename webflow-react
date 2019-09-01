@@ -97,6 +97,7 @@ if (typeof config.output.src == 'string') {
         styles: `${config.output.src}/styles`,
         views: `${config.output.src}/pages`,
         components: `${config.output.src}/components`,
+        layout: `${config.output.src}/layout`,
         meta: `${config.output.src}/meta`,
         controllers: `${config.output.src}/controllers`,
         root: config.output.src,
@@ -113,6 +114,9 @@ if (typeof config.output.src.scripts != 'string') {
 }
 if (typeof config.output.src.styles != 'string') {
     throw TypeError('config.output.src.styles must be a string');
+}
+if (typeof config.output.src.layout != 'string') {
+    throw TypeError('config.output.src.layout must be a string');
 }
 if (typeof config.output.src.views != 'string') {
     throw TypeError('config.output.src.views must be a string');
@@ -136,6 +140,7 @@ config.output = {
     src: {
         scripts: path.resolve(config.__dirname, config.output.src.scripts),
         styles: path.resolve(config.__dirname, config.output.src.styles),
+        layout: path.resolve(config.__dirname, config.output.src.layout),
         views: path.resolve(config.__dirname, config.output.src.views),
         components: path.resolve(
             config.__dirname,

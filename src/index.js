@@ -68,6 +68,7 @@ export const transpile = async config => {
             config.output.src.views,
             config.output.src.components,
             config.output.src.meta,
+            config.output.src.layout,
             config.output.src.styles,
             config.output.src.controllers
         ).then(paths => outputFiles.push(...paths)),

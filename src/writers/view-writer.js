@@ -48,12 +48,14 @@ class ViewWriter extends Writer {
         pagesDir,
         componentDir,
         metaDir,
+        layoutDir,
         stylesDir,
         ctrlsDir
     ) {
         // Create the directories if they do not exist.
         await mkdirp(pagesDir);
         await mkdirp(componentDir);
+        await mkdirp(layoutDir);
         await mkdirp(stylesDir);
         await mkdirp(metaDir);
 
