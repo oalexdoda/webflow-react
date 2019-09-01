@@ -1,5 +1,7 @@
 # Overview
 
+## NOTE: This project is in heavy development. The ReadMe will be updated along the way.
+
 *Webflow React from Abruptive* is a CLI tool that helps designers & developers convert their Webflow projects to & React.js. Optimized by default for Create React App's (CRA) structure, yet customizable to fit any custom structure you need.
 
 ## Requirements
@@ -49,13 +51,14 @@ This commit includes all the changes that Webflor React has made, and shouldn't 
 
 The commit consists of the following files (regardless if they were added, modified or deleted):
 
-- **static/** (public assets which should be served by our app's server)
+- **public/** (public assets which should be served by our app's server)
   - **images/**
   - **fonts/**
   - **css/**
-- **scripts/** (scripts that should be imported in index.js)
-- **styles/** (css files that should be imported in index.js)
-- **pages/** (contains ConsultForm - further explanation below)
+- **layout/**
+- **components/**
+- **views/**
+- **meta/**
 
 ## Example
 
