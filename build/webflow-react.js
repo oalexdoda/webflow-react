@@ -548,7 +548,7 @@ const htmltojsx = new htmltojsx__WEBPACK_IMPORTED_MODULE_1___default.a({ createC
 //   return flatten;
 // };
 
-const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="./static/');
+const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="/');
 // const removeHtmlFromLinks = (html) => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/ig, '').replace(/href="/ig, 'href="/'))
 const removeHtmlFromLinks = html => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/gi, ''));
 
@@ -652,7 +652,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
 
         const words = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["splitWords"])(name);
         Object.assign(this[_], {
-            ctrlClassName: words.concat('controller').map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(''),
+            ctrlClassName: words.map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(''),
             metaClassName: words.concat('meta').map(_utils__WEBPACK_IMPORTED_MODULE_8__["upperFirst"]).join(''),
             className: words
             // .concat('view')
@@ -1048,9 +1048,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
                                     {Metadata ? <Metadata {...this.props} /> : null}
                                     ==>${this.jsx}<==
                                 </React.Fragment>` : `
-                                <React.Fragment>
-                                    ==>${this.jsx}<==
-                                </React.Fragment>
+                                ==>${this.jsx}<==
                             `}
                         
                     

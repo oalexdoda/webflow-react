@@ -36,7 +36,7 @@ const htmltojsx = new HTMLtoJSX({ createClass: false });
 //   return flatten;
 // };
 
-const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="./static/');
+const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="/');
 // const removeHtmlFromLinks = (html) => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/ig, '').replace(/href="/ig, 'href="/'))
 const removeHtmlFromLinks = html =>
     adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/gi, ''));
@@ -172,10 +172,7 @@ class ViewWriter extends Writer {
 
         const words = splitWords(name);
         Object.assign(this[_], {
-            ctrlClassName: words
-                .concat('controller')
-                .map(upperFirst)
-                .join(''),
+            ctrlClassName: words.map(upperFirst).join(''),
             metaClassName: words
                 .concat('meta')
                 .map(upperFirst)
@@ -609,9 +606,7 @@ class ViewWriter extends Writer {
                                     ==>${this.jsx}<==
                                 </React.Fragment>`
                                 : `
-                                <React.Fragment>
-                                    ==>${this.jsx}<==
-                                </React.Fragment>
+                                ==>${this.jsx}<==
                             `
                         }
                         
