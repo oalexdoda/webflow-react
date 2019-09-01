@@ -511,6 +511,15 @@ class ViewWriter extends Writer {
     }
 
     _compose(compDir, metaDir, ctrlsDir, shouldHaveStyles = true) {
+        // Adjust the controllers directory.
+        ctrlsDir = '../' + ctrlsDir;
+        if (this[_].isComponent) {
+            ctrlsDir += '/components';
+        } else {
+            ctrlsDir += '/views';
+        }
+
+        // Return the composed template.
         return freeLint(`
             import React from 'react'
 

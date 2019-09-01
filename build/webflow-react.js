@@ -964,6 +964,15 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
     }
 
     _compose(compDir, metaDir, ctrlsDir, shouldHaveStyles = true) {
+        // Adjust the controllers directory.
+        ctrlsDir = '../' + ctrlsDir;
+        if (this[_].isComponent) {
+            ctrlsDir += '/components';
+        } else {
+            ctrlsDir += '/views';
+        }
+
+        // Return the composed template.
         return Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(`
             import React from 'react'
 

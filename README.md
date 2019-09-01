@@ -1,6 +1,6 @@
 # Overview
 
-*Webflow React from Abruptive* is a CLI tool that helps designers & developers convert their Webflow projects to Next.js & React.
+*Webflow React from Abruptive* is a CLI tool that helps designers & developers convert their Webflow projects to & React.js. Optimized by default for Create React App's (CRA) structure, yet customizable to fit any custom structure you need.
 
 ## Requirements
 
