@@ -51,10 +51,12 @@ class ViewWriter extends Writer {
         stylesDir,
         ctrlsDir
     ) {
+        // Create the directories if they do not exist.
         await mkdirp(pagesDir);
         await mkdirp(componentDir);
         await mkdirp(stylesDir);
         await mkdirp(metaDir);
+
         const helpersFilePath = `${pagesDir}/../helpers.js`;
         const childFilePaths = [helpersFilePath];
         ctrlsDir = path.relative(pagesDir, ctrlsDir);

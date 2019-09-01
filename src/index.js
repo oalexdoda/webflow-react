@@ -123,7 +123,6 @@ const transpileHTMLFile = async (
     });
 
     setScripts(scriptWriter, $head, $);
-
     setStyles(viewWriter, styleWriter, $head, $, config.output.src.views);
     setHTML(viewWriter, $body, $);
 
