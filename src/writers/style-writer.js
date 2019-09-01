@@ -147,48 +147,48 @@ class StyleWriter extends Writer {
         const styles = this[_].styles
             .map(style => {
                 return freeText(`
-        {
-          type: '${style.type}',
-          body: '${escape(style.body, "'")}',
-        },
-      `);
+                    {
+                        type: '${style.type}',
+                        body: '${escape(style.body, "'")}',
+                    },
+                `);
             })
             .join('\n');
 
         return freeLint(`
-      const styles = [
-        ==>${styles}<==
-      ]
+            const styles = [
+                ==>${styles}<==
+            ]
 
-      const loadingStyles = styles.map((style) => {
-        let styleEl
-        let loading
+            const loadingStyles = styles.map((style) => {
+                let styleEl
+                let loading
 
-        if (style.type == 'href') {
-          styleEl = document.createElement('link')
+                if (style.type === 'href') {
+                styleEl = document.createElement('link')
 
-          loading = new Promise((resolve, reject) => {
-            styleEl.onload = resolve
-            styleEl.onerror = reject
-          })
+                loading = new Promise((resolve, reject) => {
+                    styleEl.onload = resolve
+                    styleEl.onerror = reject
+                })
 
-          styleEl.rel = 'stylesheet'
-          styleEl.type = 'text/css'
-          styleEl.href = style.body
-        }
-        else {
-          styleEl = document.createElement('style')
-          styleEl.type = 'text/css'
-          styleEl.innerHTML = style.body
+                styleEl.rel = 'stylesheet'
+                styleEl.type = 'text/css'
+                styleEl.href = style.body
+                }
+                else {
+                styleEl = document.createElement('style')
+                styleEl.type = 'text/css'
+                styleEl.innerHTML = style.body
 
-          loading = Promise.resolve()
-        }
+                loading = Promise.resolve()
+                }
 
-        document.head.appendChild(styleEl)
+                document.head.appendChild(styleEl)
 
-        return loading
-      })
-    `);
+                return loading
+            })
+        `);
     }
 
     // Will minify and encapsulate classes

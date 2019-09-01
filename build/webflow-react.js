@@ -169,11 +169,11 @@ const transpile = (() => {
             return transpileHTMLFile(config, htmlFile, scriptWriter, styleWriter);
         });
         const viewWriters = yield Promise.all(transpilingHTMLFiles);
-        const writingFiles = Promise.all([_writers__WEBPACK_IMPORTED_MODULE_3__["ViewWriter"].writeAll(viewWriters, config.output.src.views, config.output.src.components, config.output.src.meta, config.output.src.layout, config.output.src.styles, config.output.src.controllers).then(function (paths) {
+        const writingFiles = Promise.all([_writers__WEBPACK_IMPORTED_MODULE_3__["ViewWriter"].writeAll(viewWriters, config.output.src.views, config.output.src.components, config.output.src.meta, config.output.src.layout, config.output.src.controllers).then(function (paths) {
             return outputFiles.push(...paths);
-        }), scriptWriter.write(config.output.src.scripts).then(function (paths) {
+        }), scriptWriter.write(config.output.src.layout + '/App/scripts').then(function (paths) {
             return outputFiles.push(...paths);
-        }), styleWriter.write(config.output.src.styles).then(function (paths) {
+        }), styleWriter.write(config.output.src.layout + '/App/styles').then(function (paths) {
             return outputFiles.push(...paths);
         })]);
 
@@ -202,6 +202,10 @@ const transpileHTMLFile = (() => {
         const html = (yield _libs__WEBPACK_IMPORTED_MODULE_2__["fs"].readFile(`${config.input}/${htmlFile}`)).toString();
         const $ = cheerio__WEBPACK_IMPORTED_MODULE_0___default.a.load(html);
         const $head = $('head');
+
+        if (htmlFile == 'index.html') {
+            htmlFile = 'home.html';
+        }
 
         if (!!scriptWriter && !!styleWriter) {
             // pass
@@ -526,8 +530,8 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 const writingFiles = [];
 
 // Attempt at supporting windows by monkey patching path.relative to prevent backslashes.
-const orPathRel = path__WEBPACK_IMPORTED_MODULE_2___default.a.relative;
-path__WEBPACK_IMPORTED_MODULE_2___default.a.relative = (from, to) => orPathRel(from, to).replace(/\\/gi, '/');
+// const orPathRel = path.relative;
+// path.relative = (from, to) => orPathRel(from, to).replace(/\\/gi, '/');
 
 
 
@@ -549,18 +553,47 @@ const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="./static/');
 const removeHtmlFromLinks = html => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/gi, ''));
 
 let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])(_), _dec(_class = class ViewWriter extends _writer__WEBPACK_IMPORTED_MODULE_7__["default"] {
-    static writeAll(viewWriters, pagesDir, componentDir, metaDir, layoutDir, stylesDir, ctrlsDir) {
+    static writeAll(viewWriters, pagesDir, componentDir, metaDir, layoutDir, ctrlsDir) {
         return _asyncToGenerator(function* () {
             // Create the directories if they do not exist.
             yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(pagesDir);
             yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(componentDir);
             yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(layoutDir);
-            yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(stylesDir);
             yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(metaDir);
 
+            // Declare file paths for index, helpers and routes.
+            const indexFilePath = `${pagesDir}/index.js`;
             const helpersFilePath = `${pagesDir}/../helpers.js`;
-            const childFilePaths = [helpersFilePath];
+            const routesFilePath = `${pagesDir}/../routes.js`;
+            const childFilePaths = [indexFilePath, helpersFilePath, routesFilePath];
+
+            // Get the relative controls dir.
             ctrlsDir = path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, ctrlsDir);
+
+            // Prepare the "routes.js" template.
+            const routes = `	
+            import React from 'react';	
+            import { Route, BrowserRouter } from 'react-router-dom';	
+            import * as Views from './views';
+
+            ${viewWriters.map(function (viewWriter) {
+                return `export const ${viewWriter.className.replace(/view/gi, '').toUpperCase()} = '${viewWriter.parent ? `/${viewWriter.parent}` : ''}/${viewWriter.className.replace(/home/gi, '').replace(/view/gi, '').split(/(?=[A-Z])/).join('-').toLowerCase()}';`;
+            }).join('\n  ')}
+        
+            const Router = () => (
+                <BrowserRouter>
+                ${viewWriters.map(function (viewWriter) {
+                return `<Route key="${viewWriter.className.replace(/view/gi, '')}" path={ ${viewWriter.className.replace(/view/gi, '').toUpperCase()} } component={Views.${viewWriter.className}.Controller} exact />`;
+            }).join('\n')}
+                </BrowserRouter>
+            );
+            
+            export default Router;`;
+
+            // Prepare the views "index.js" template.
+            const index = viewWriters.map(function (viewWriter) {
+                return `export { default as ${viewWriter.className} } from './${viewWriter.className}'`;
+            }).join('\n');
 
             const leanViewWriters = [];
             // viewWriters = flattenChildren(viewWriters);
@@ -574,7 +607,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
             }
             leanViewWriters.forEach((() => {
                 var _ref = _asyncToGenerator(function* (viewWriter) {
-                    const filePaths = yield viewWriter.write(pagesDir, componentDir, metaDir, stylesDir, ctrlsDir);
+                    const filePaths = yield viewWriter.write(pagesDir, componentDir, metaDir, ctrlsDir, layoutDir);
                     childFilePaths.push(...filePaths);
                 });
 
@@ -583,9 +616,11 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
                 };
             })());
 
+            const writtingRoutes = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(routesFilePath, Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(routes));
+            const writingIndex = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(indexFilePath, Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(index));
             const writingHelpers = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(helpersFilePath, _raw__WEBPACK_IMPORTED_MODULE_6__["default"].viewHelpers);
 
-            yield Promise.all([writingHelpers]);
+            yield Promise.all([writingIndex, writingHelpers, writtingRoutes]);
             return childFilePaths;
         })();
     }
@@ -810,7 +845,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         this.source = options.source;
     }
 
-    write(pagesDir, componentDir, metaDir, stylesDir, ctrlsDir) {
+    write(pagesDir, componentDir, metaDir, ctrlsDir, layoutDir = null) {
         var _this = this;
 
         return _asyncToGenerator(function* () {
@@ -829,7 +864,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
                 var _ref2 = _asyncToGenerator(function* (child) {
                     if (!writingFiles.includes(child.className)) {
                         writingFiles.push(child.className);
-                        const filePaths = yield child.write(componentDir, componentDir, metaDir, stylesDir, ctrlsDir);
+                        const filePaths = yield child.write(componentDir, componentDir, metaDir, ctrlsDir);
                         childFilePaths.push(...filePaths);
                     }
                 });
@@ -846,7 +881,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
                     yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(pagesDir + '/' + _this.className);
                     yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].readFile(`${pagesDir}/${fileName}/index.js`);
                 } catch (e) {
-                    writingSelf = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${pagesDir}/${fileName}/index.js`, _this[_].compose(path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, componentDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, metaDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, stylesDir), ctrlsDir, !isComponent));
+                    writingSelf = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${pagesDir}/${fileName}/index.js`, _this[_].compose(path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, componentDir), path__WEBPACK_IMPORTED_MODULE_2___default.a.relative(pagesDir, metaDir), ctrlsDir, !isComponent));
                 }
             }
 
@@ -854,6 +889,26 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
                 yield Promise.all([...writingChildren, writingSelf]);
             } catch (e) {
                 console.log(e);
+            }
+
+            // Create the <App /> component inside the layout folder.
+            if (layoutDir) {
+                try {
+                    yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(layoutDir + '/App');
+                    yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].readFile(`${layoutDir}/App/index.js`);
+                } catch (e) {
+                    writingSelf = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${layoutDir}/App/index.js`, _this[_].composeApp());
+                }
+            }
+
+            // Create the <Page /> component inside the layout folder.
+            if (layoutDir) {
+                try {
+                    yield Object(_libs__WEBPACK_IMPORTED_MODULE_5__["mkdirp"])(layoutDir + '/Page');
+                    yield _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].readFile(`${layoutDir}/Page/index.js`);
+                } catch (e) {
+                    writingSelf = _libs__WEBPACK_IMPORTED_MODULE_5__["fs"].writeFile(`${layoutDir}/Page/index.js`, _this[_].composePage());
+                }
             }
 
             return childFilePaths;
@@ -908,17 +963,13 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         })();
     }
 
-    _compose(compDir, metaDir, stylesDir, ctrlsDir, shouldHaveStyles = true) {
+    _compose(compDir, metaDir, ctrlsDir, shouldHaveStyles = true) {
         return Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(`
             import React from 'react'
 
             ${
-        // Import the Page wrapper if this is a page.
-        !this[_].isComponent ? `import Page from '../layout'` : ''}
-
-            ${
         // Add helpers if the component has data sockets.
-        this[_].sockets.length ? `import { createScope, map, transformProxies } from '../helpers'` : ''}
+        this[_].sockets.length ? `import { createScope, map, transformProxies } from '../../helpers'` : ''}
 
             ${
         // Add CSS imports if the page has styles.
@@ -939,7 +990,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
                     return Controller
                 }
                 catch (e) {
-                    if (e.code == 'MODULE_NOT_FOUND') {
+                    if (e.code === 'MODULE_NOT_FOUND') {
                     Controller = ${this.className}
 
                     return Controller
@@ -962,6 +1013,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         this[_].isComponent ? '' : `
                             let Metadata
                             try {
+                                // eslint-disable-next-line
                                 Metadata = require("${metaDir}/${this.metaClassName}")
                                 Metadata = Metadata.default || Metadata
                             } catch (e) {
@@ -969,6 +1021,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
                                 Metadata = null;
                             }
                             try {
+                                // eslint-disable-next-line
                                 Metadata = require("${metaDir}/defaultMeta")
                                 Metadata = Metadata.default || Metadata
                             } catch (e) {
@@ -982,10 +1035,10 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
                         ${
         // Render metadata if this is a page.
         !this[_].isComponent ? `
-                                <Page>
+                                <React.Fragment>
                                     {Metadata ? <Metadata {...this.props} /> : null}
                                     ==>${this.jsx}<==
-                                </Page>` : `
+                                </React.Fragment>` : `
                                 <React.Fragment>
                                     ==>${this.jsx}<==
                                 </React.Fragment>
@@ -998,6 +1051,34 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
 
         export default ${this.className}
     `);
+    }
+
+    _composeApp() {
+        return Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(`
+            import React from 'react';
+            import Router from '../../routes.js';
+
+            import './styles';
+            import './scripts';
+
+            const App = () => <Router />;
+
+            export default App;
+        `);
+    }
+
+    _composePage() {
+        return Object(_utils__WEBPACK_IMPORTED_MODULE_8__["freeLint"])(`
+            import React from 'react';
+
+            const Page = () => {
+               return (
+                   <div></div>
+               );
+            };
+
+            export default Page;
+        `);
     }
 
     _composeStyleImports() {
@@ -1035,7 +1116,9 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
 
     _composeChildImports(compDir) {
         if (!compDir) {
-            compDir = '.';
+            compDir = '..';
+        } else {
+            compDir = '../' + compDir;
         }
         const imported = [];
 
@@ -1570,7 +1653,7 @@ let ScriptWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["Internal"
         scriptEl.type = 'text/javascript'
         let loading
 
-        if (script.type == 'src') {
+        if (script.type === 'src') {
           scriptEl.src = script.body
 
           loading = new Promise((resolve, reject) => {
@@ -1760,47 +1843,47 @@ let StyleWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_5__["Internal"]
 
         const styles = this[_].styles.map(style => {
             return Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeText"])(`
-        {
-          type: '${style.type}',
-          body: '${Object(_utils__WEBPACK_IMPORTED_MODULE_5__["escape"])(style.body, "'")}',
-        },
-      `);
+                    {
+                        type: '${style.type}',
+                        body: '${Object(_utils__WEBPACK_IMPORTED_MODULE_5__["escape"])(style.body, "'")}',
+                    },
+                `);
         }).join('\n');
 
         return Object(_utils__WEBPACK_IMPORTED_MODULE_5__["freeLint"])(`
-      const styles = [
-        ==>${styles}<==
-      ]
+            const styles = [
+                ==>${styles}<==
+            ]
 
-      const loadingStyles = styles.map((style) => {
-        let styleEl
-        let loading
+            const loadingStyles = styles.map((style) => {
+                let styleEl
+                let loading
 
-        if (style.type == 'href') {
-          styleEl = document.createElement('link')
+                if (style.type === 'href') {
+                styleEl = document.createElement('link')
 
-          loading = new Promise((resolve, reject) => {
-            styleEl.onload = resolve
-            styleEl.onerror = reject
-          })
+                loading = new Promise((resolve, reject) => {
+                    styleEl.onload = resolve
+                    styleEl.onerror = reject
+                })
 
-          styleEl.rel = 'stylesheet'
-          styleEl.type = 'text/css'
-          styleEl.href = style.body
-        }
-        else {
-          styleEl = document.createElement('style')
-          styleEl.type = 'text/css'
-          styleEl.innerHTML = style.body
+                styleEl.rel = 'stylesheet'
+                styleEl.type = 'text/css'
+                styleEl.href = style.body
+                }
+                else {
+                styleEl = document.createElement('style')
+                styleEl.type = 'text/css'
+                styleEl.innerHTML = style.body
 
-          loading = Promise.resolve()
-        }
+                loading = Promise.resolve()
+                }
 
-        document.head.appendChild(styleEl)
+                document.head.appendChild(styleEl)
 
-        return loading
-      })
-    `);
+                return loading
+            })
+        `);
     }
 
     // Will minify and encapsulate classes

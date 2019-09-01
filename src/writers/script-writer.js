@@ -149,7 +149,7 @@ class ScriptWriter extends Writer {
         scriptEl.type = 'text/javascript'
         let loading
 
-        if (script.type == 'src') {
+        if (script.type === 'src') {
           scriptEl.src = script.body
 
           loading = new Promise((resolve, reject) => {

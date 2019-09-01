@@ -10,8 +10,8 @@ import Writer from './writer';
 const writingFiles = [];
 
 // Attempt at supporting windows by monkey patching path.relative to prevent backslashes.
-const orPathRel = path.relative;
-path.relative = (from, to) => orPathRel(from, to).replace(/\\/gi, '/');
+// const orPathRel = path.relative;
+// path.relative = (from, to) => orPathRel(from, to).replace(/\\/gi, '/');
 
 import {
     escape,
@@ -49,19 +49,70 @@ class ViewWriter extends Writer {
         componentDir,
         metaDir,
         layoutDir,
-        stylesDir,
         ctrlsDir
     ) {
         // Create the directories if they do not exist.
         await mkdirp(pagesDir);
         await mkdirp(componentDir);
         await mkdirp(layoutDir);
-        await mkdirp(stylesDir);
         await mkdirp(metaDir);
 
+        // Declare file paths for index, helpers and routes.
+        const indexFilePath = `${pagesDir}/index.js`;
         const helpersFilePath = `${pagesDir}/../helpers.js`;
-        const childFilePaths = [helpersFilePath];
+        const routesFilePath = `${pagesDir}/../routes.js`;
+        const childFilePaths = [indexFilePath, helpersFilePath, routesFilePath];
+
+        // Get the relative controls dir.
         ctrlsDir = path.relative(pagesDir, ctrlsDir);
+
+        // Prepare the "routes.js" template.
+        const routes = `	
+            import React from 'react';	
+            import { Route, BrowserRouter } from 'react-router-dom';	
+            import * as Views from './views';
+
+            ${viewWriters
+                .map(viewWriter => {
+                    return `export const ${viewWriter.className
+                        .replace(/view/gi, '')
+                        .toUpperCase()} = '${
+                        viewWriter.parent ? `/${viewWriter.parent}` : ''
+                    }/${viewWriter.className
+                        .replace(/home/gi, '')
+                        .replace(/view/gi, '')
+                        .split(/(?=[A-Z])/)
+                        .join('-')
+                        .toLowerCase()}';`;
+                })
+                .join('\n  ')}
+        
+            const Router = () => (
+                <BrowserRouter>
+                ${viewWriters
+                    .map(
+                        viewWriter =>
+                            `<Route key="${viewWriter.className.replace(
+                                /view/gi,
+                                ''
+                            )}" path={ ${viewWriter.className
+                                .replace(/view/gi, '')
+                                .toUpperCase()} } component={Views.${
+                                viewWriter.className
+                            }.Controller} exact />`
+                    )
+                    .join('\n')}
+                </BrowserRouter>
+            );
+            
+            export default Router;`;
+
+        // Prepare the views "index.js" template.
+        const index = viewWriters
+            .map(viewWriter => {
+                return `export { default as ${viewWriter.className} } from './${viewWriter.className}'`;
+            })
+            .join('\n');
 
         const leanViewWriters = [];
         // viewWriters = flattenChildren(viewWriters);
@@ -80,15 +131,17 @@ class ViewWriter extends Writer {
                 pagesDir,
                 componentDir,
                 metaDir,
-                stylesDir,
-                ctrlsDir
+                ctrlsDir,
+                layoutDir
             );
             childFilePaths.push(...filePaths);
         });
 
+        const writtingRoutes = fs.writeFile(routesFilePath, freeLint(routes));
+        const writingIndex = fs.writeFile(indexFilePath, freeLint(index));
         const writingHelpers = fs.writeFile(helpersFilePath, raw.viewHelpers);
 
-        await Promise.all([writingHelpers]);
+        await Promise.all([writingIndex, writingHelpers, writtingRoutes]);
         return childFilePaths;
     }
 
@@ -327,7 +380,7 @@ class ViewWriter extends Writer {
         this.source = options.source;
     }
 
-    async write(pagesDir, componentDir, metaDir, stylesDir, ctrlsDir) {
+    async write(pagesDir, componentDir, metaDir, ctrlsDir, layoutDir = null) {
         // Check if the artefact is a "page" or "component".
         const isComponent = pagesDir === componentDir;
         const fileName = this.className;
@@ -346,7 +399,6 @@ class ViewWriter extends Writer {
                     componentDir,
                     componentDir,
                     metaDir,
-                    stylesDir,
                     ctrlsDir
                 );
                 childFilePaths.push(...filePaths);
@@ -365,7 +417,6 @@ class ViewWriter extends Writer {
                     this[_].compose(
                         path.relative(pagesDir, componentDir),
                         path.relative(pagesDir, metaDir),
-                        path.relative(pagesDir, stylesDir),
                         ctrlsDir,
                         !isComponent
                     )
@@ -377,6 +428,32 @@ class ViewWriter extends Writer {
             await Promise.all([...writingChildren, writingSelf]);
         } catch (e) {
             console.log(e);
+        }
+
+        // Create the <App /> component inside the layout folder.
+        if (layoutDir) {
+            try {
+                await mkdirp(layoutDir + '/App');
+                await fs.readFile(`${layoutDir}/App/index.js`);
+            } catch (e) {
+                writingSelf = fs.writeFile(
+                    `${layoutDir}/App/index.js`,
+                    this[_].composeApp()
+                );
+            }
+        }
+
+        // Create the <Page /> component inside the layout folder.
+        if (layoutDir) {
+            try {
+                await mkdirp(layoutDir + '/Page');
+                await fs.readFile(`${layoutDir}/Page/index.js`);
+            } catch (e) {
+                writingSelf = fs.writeFile(
+                    `${layoutDir}/Page/index.js`,
+                    this[_].composePage()
+                );
+            }
         }
 
         return childFilePaths;
@@ -433,19 +510,14 @@ class ViewWriter extends Writer {
         }
     }
 
-    _compose(compDir, metaDir, stylesDir, ctrlsDir, shouldHaveStyles = true) {
+    _compose(compDir, metaDir, ctrlsDir, shouldHaveStyles = true) {
         return freeLint(`
             import React from 'react'
 
             ${
-                // Import the Page wrapper if this is a page.
-                !this[_].isComponent ? `import Page from '../layout'` : ''
-            }
-
-            ${
                 // Add helpers if the component has data sockets.
                 this[_].sockets.length
-                    ? `import { createScope, map, transformProxies } from '../helpers'`
+                    ? `import { createScope, map, transformProxies } from '../../helpers'`
                     : ''
             }
 
@@ -469,7 +541,7 @@ class ViewWriter extends Writer {
                     return Controller
                 }
                 catch (e) {
-                    if (e.code == 'MODULE_NOT_FOUND') {
+                    if (e.code === 'MODULE_NOT_FOUND') {
                     Controller = ${this.className}
 
                     return Controller
@@ -499,6 +571,7 @@ class ViewWriter extends Writer {
                         : `
                             let Metadata
                             try {
+                                // eslint-disable-next-line
                                 Metadata = require("${metaDir}/${this.metaClassName}")
                                 Metadata = Metadata.default || Metadata
                             } catch (e) {
@@ -506,6 +579,7 @@ class ViewWriter extends Writer {
                                 Metadata = null;
                             }
                             try {
+                                // eslint-disable-next-line
                                 Metadata = require("${metaDir}/defaultMeta")
                                 Metadata = Metadata.default || Metadata
                             } catch (e) {
@@ -521,10 +595,10 @@ class ViewWriter extends Writer {
                             // Render metadata if this is a page.
                             !this[_].isComponent
                                 ? `
-                                <Page>
+                                <React.Fragment>
                                     {Metadata ? <Metadata {...this.props} /> : null}
                                     ==>${this.jsx}<==
-                                </Page>`
+                                </React.Fragment>`
                                 : `
                                 <React.Fragment>
                                     ==>${this.jsx}<==
@@ -539,6 +613,34 @@ class ViewWriter extends Writer {
 
         export default ${this.className}
     `);
+    }
+
+    _composeApp() {
+        return freeLint(`
+            import React from 'react';
+            import Router from '../../routes.js';
+
+            import './styles';
+            import './scripts';
+
+            const App = () => <Router />;
+
+            export default App;
+        `);
+    }
+
+    _composePage() {
+        return freeLint(`
+            import React from 'react';
+
+            const Page = () => {
+               return (
+                   <div></div>
+               );
+            };
+
+            export default Page;
+        `);
     }
 
     _composeStyleImports() {
@@ -582,7 +684,9 @@ class ViewWriter extends Writer {
 
     _composeChildImports(compDir) {
         if (!compDir) {
-            compDir = '.';
+            compDir = '..';
+        } else {
+            compDir = '../' + compDir;
         }
         const imported = [];
 

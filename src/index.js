@@ -69,14 +69,13 @@ export const transpile = async config => {
             config.output.src.components,
             config.output.src.meta,
             config.output.src.layout,
-            config.output.src.styles,
             config.output.src.controllers
         ).then(paths => outputFiles.push(...paths)),
         scriptWriter
-            .write(config.output.src.scripts)
+            .write(config.output.src.layout + '/App/scripts')
             .then(paths => outputFiles.push(...paths)),
         styleWriter
-            .write(config.output.src.styles)
+            .write(config.output.src.layout + '/App/styles')
             .then(paths => outputFiles.push(...paths)),
     ]);
 
@@ -104,6 +103,10 @@ const transpileHTMLFile = async (
     const html = (await fs.readFile(`${config.input}/${htmlFile}`)).toString();
     const $ = cheerio.load(html);
     const $head = $('head');
+
+    if (htmlFile == 'index.html') {
+        htmlFile = 'home.html';
+    }
 
     if (!!scriptWriter && !!styleWriter) {
         // pass
