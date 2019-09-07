@@ -82,7 +82,7 @@ class ViewWriter extends Writer {
                         .replace(/home/gi, '')
                         .replace(/view/gi, '')
                         .split(/(?=[A-Z])/)
-                        .join('-')
+                        .slice(-1)[0]
                         .toLowerCase()}';`;
                 })
                 .join('\n  ')}

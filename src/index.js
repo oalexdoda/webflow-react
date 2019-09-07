@@ -136,12 +136,15 @@ const transpileHTMLFile = async (
     }
 
     const $body = $('body');
-    const splitter = htmlFile.split('/');
+
     const viewWriter = new ViewWriter({
-        name: splitter[htmlFile.split('/').length - 1]
-            .split('.')
-            .slice(0, -1)
-            .join('.'),
+        name: htmlFile
+            .replace('.html', '')
+            .split('/')
+            .map(segment => {
+                return segment.charAt(0).toUpperCase() + segment.slice(1);
+            })
+            .join(''),
         baseUrl: config.baseUrl,
         parent:
             htmlFile.split('/')[0] === htmlFile ? null : htmlFile.split('/')[0],

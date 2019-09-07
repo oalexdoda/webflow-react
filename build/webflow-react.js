@@ -229,9 +229,11 @@ const transpileHTMLFile = (() => {
         }
 
         const $body = $('body');
-        const splitter = htmlFile.split('/');
+
         const viewWriter = new _writers__WEBPACK_IMPORTED_MODULE_3__["ViewWriter"]({
-            name: splitter[htmlFile.split('/').length - 1].split('.').slice(0, -1).join('.'),
+            name: htmlFile.replace('.html', '').split('/').map(function (segment) {
+                return segment.charAt(0).toUpperCase() + segment.slice(1);
+            }).join(''),
             baseUrl: config.baseUrl,
             parent: htmlFile.split('/')[0] === htmlFile ? null : htmlFile.split('/')[0],
             isComponent: false,
@@ -594,7 +596,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
             import * as Views from './views';
 
             ${viewWriters.map(function (viewWriter) {
-                return `export const ${viewWriter.className.replace(/view/gi, '').toUpperCase()} = '${viewWriter.parent ? `/${viewWriter.parent}` : ''}/${viewWriter.className.replace(/home/gi, '').replace(/view/gi, '').split(/(?=[A-Z])/).join('-').toLowerCase()}';`;
+                return `export const ${viewWriter.className.replace(/view/gi, '').toUpperCase()} = '${viewWriter.parent ? `/${viewWriter.parent}` : ''}/${viewWriter.className.replace(/home/gi, '').replace(/view/gi, '').split(/(?=[A-Z])/).slice(-1)[0].toLowerCase()}';`;
             }).join('\n  ')}
         
             const Router = () => (
