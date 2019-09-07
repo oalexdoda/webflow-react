@@ -769,6 +769,7 @@ function bindJSX(self, jsx, children = []) {
                 )}>{props.children ? props.children : null}</React.Fragment>)}`
             );
         } else {
+            // Bind controllers to children.
             jsx = jsx.replace(
                 new RegExp(`af-${child.elName}`, 'g'),
                 `${child.className}.Controller {...this.props}`

@@ -9,6 +9,7 @@ const defaultPublicSubFolders = ['css', 'fonts', 'images', 'js'];
 export const transpile = async config => {
     let inputFiles;
     let outputFiles = [];
+
     try {
         await Promise.all([
             fs.readdir(config.input).then(files => {
@@ -27,71 +28,93 @@ export const transpile = async config => {
             !path.extname(file).length &&
             !defaultPublicSubFolders.includes(file)
     );
-    try {
-        await Promise.all(
-            folders.map(folder =>
-                fs.readdir(`${config.input}/${folder}`).then(files => {
-                    inputFiles = [
-                        ...(inputFiles || []),
-                        ...(files || []).map(file => `${folder}/${file}`),
-                    ];
-                })
-            )
-        );
-    } catch (e) {
-        console.log(e);
-    }
-    const htmlFiles = inputFiles.filter(file => path.extname(file) == '.html');
 
+    let htmlFiles;
+
+    // Get the public directories for "css", "fonts", "images", "js".
     const publicSubDirs = inputFiles.filter(
         file => !path.extname(file) && defaultPublicSubFolders.includes(file)
     );
 
-    const scriptWriter = new ScriptWriter({
-        baseUrl: config.input,
-        prefetch: config.prefetch,
-    });
+    // Map the directory files.
+    folders.map(folder =>
+        fs
+            // Read the directories.
+            .readdir(`${config.input}/${folder}`)
 
-    const styleWriter = new StyleWriter({
-        baseUrl: config.input,
-        prefetch: config.prefetch,
-        source: config.srouce,
-    });
+            // Map the input files.
+            .then(files => {
+                inputFiles = [
+                    ...(inputFiles || []),
+                    ...(files || []).map(file => `${folder}/${file}`),
+                ];
+            })
 
-    const transpilingHTMLFiles = htmlFiles.map(htmlFile => {
-        return transpileHTMLFile(config, htmlFile, scriptWriter, styleWriter);
-    });
-    const viewWriters = await Promise.all(transpilingHTMLFiles);
-    const writingFiles = Promise.all([
-        ViewWriter.writeAll(
-            viewWriters,
-            config.output.src.views,
-            config.output.src.components,
-            config.output.src.meta,
-            config.output.src.layout,
-            config.output.src.controllers
-        ).then(paths => outputFiles.push(...paths)),
-        scriptWriter
-            .write(config.output.src.layout + '/App/scripts')
-            .then(paths => outputFiles.push(...paths)),
-        styleWriter
-            .write(config.output.src.layout + '/App/styles')
-            .then(paths => outputFiles.push(...paths)),
-    ]);
+            // Filter only HTML files.
+            .then(() => {
+                htmlFiles = inputFiles.filter(
+                    file => path.extname(file) == '.html'
+                );
+            })
 
-    const makingPublicDir = makePublicDir(config, publicSubDirs).then(paths =>
-        outputFiles.push(...paths)
+            // Execute the writers.
+            .then(async () => {
+                const scriptWriter = new ScriptWriter({
+                    baseUrl: config.input,
+                    prefetch: config.prefetch,
+                });
+
+                const styleWriter = new StyleWriter({
+                    baseUrl: config.input,
+                    prefetch: config.prefetch,
+                    source: config.srouce,
+                });
+
+                const transpilingHTMLFiles = htmlFiles.map(htmlFile => {
+                    return transpileHTMLFile(
+                        config,
+                        htmlFile,
+                        scriptWriter,
+                        styleWriter
+                    );
+                });
+
+                const viewWriters = await Promise.all(transpilingHTMLFiles);
+
+                const writingFiles = await Promise.all([
+                    ViewWriter.writeAll(
+                        viewWriters,
+                        config.output.src.views,
+                        config.output.src.components,
+                        config.output.src.meta,
+                        config.output.src.layout,
+                        config.output.src.controllers
+                    ).then(paths => outputFiles.push(...paths)),
+                    scriptWriter
+                        .write(config.output.src.layout + '/App/scripts')
+                        .then(paths => outputFiles.push(...paths)),
+                    styleWriter
+                        .write(config.output.src.layout + '/App/styles')
+                        .then(paths => outputFiles.push(...paths)),
+                ]);
+
+                const makingPublicDir = makePublicDir(
+                    config,
+                    publicSubDirs
+                ).then(paths => outputFiles.push(...paths));
+
+                try {
+                    await Promise.all([writingFiles, makingPublicDir]);
+                } catch (e) {
+                    console.log(e);
+                }
+
+                // TODO: Enable Git?
+                // return git.add(outputFiles, config).then(files => {
+                //     return git.commit(files, 'Updated');
+                // });
+            })
     );
-    try {
-        await Promise.all([writingFiles, makingPublicDir]);
-    } catch (e) {
-        console.log(e);
-    }
-
-    // TODO: Enable Git?
-    // return git.add(outputFiles, config).then(files => {
-    //     return git.commit(files, 'Updated');
-    // });
 };
 
 const transpileHTMLFile = async (

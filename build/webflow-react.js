@@ -120,6 +120,7 @@ const transpile = (() => {
     var _ref = _asyncToGenerator(function* (config) {
         let inputFiles;
         let outputFiles = [];
+
         try {
             yield Promise.all([_libs__WEBPACK_IMPORTED_MODULE_2__["fs"].readdir(config.input).then(function (files) {
                 inputFiles = files;
@@ -135,61 +136,77 @@ const transpile = (() => {
         const folders = inputFiles.filter(function (file) {
             return !path__WEBPACK_IMPORTED_MODULE_1___default.a.extname(file).length && !defaultPublicSubFolders.includes(file);
         });
-        try {
-            yield Promise.all(folders.map(function (folder) {
-                return _libs__WEBPACK_IMPORTED_MODULE_2__["fs"].readdir(`${config.input}/${folder}`).then(function (files) {
-                    inputFiles = [...(inputFiles || []), ...(files || []).map(function (file) {
-                        return `${folder}/${file}`;
-                    })];
-                });
-            }));
-        } catch (e) {
-            console.log(e);
-        }
-        const htmlFiles = inputFiles.filter(function (file) {
-            return path__WEBPACK_IMPORTED_MODULE_1___default.a.extname(file) == '.html';
-        });
 
+        let htmlFiles;
+
+        // Get the public directories for "css", "fonts", "images", "js".
         const publicSubDirs = inputFiles.filter(function (file) {
             return !path__WEBPACK_IMPORTED_MODULE_1___default.a.extname(file) && defaultPublicSubFolders.includes(file);
         });
 
-        const scriptWriter = new _writers__WEBPACK_IMPORTED_MODULE_3__["ScriptWriter"]({
-            baseUrl: config.input,
-            prefetch: config.prefetch
-        });
+        // Map the directory files.
+        folders.map(function (folder) {
+            return _libs__WEBPACK_IMPORTED_MODULE_2__["fs"]
+            // Read the directories.
+            .readdir(`${config.input}/${folder}`)
 
-        const styleWriter = new _writers__WEBPACK_IMPORTED_MODULE_3__["StyleWriter"]({
-            baseUrl: config.input,
-            prefetch: config.prefetch,
-            source: config.srouce
-        });
+            // Map the input files.
+            .then(function (files) {
+                inputFiles = [...(inputFiles || []), ...(files || []).map(function (file) {
+                    return `${folder}/${file}`;
+                })];
+            })
 
-        const transpilingHTMLFiles = htmlFiles.map(function (htmlFile) {
-            return transpileHTMLFile(config, htmlFile, scriptWriter, styleWriter);
-        });
-        const viewWriters = yield Promise.all(transpilingHTMLFiles);
-        const writingFiles = Promise.all([_writers__WEBPACK_IMPORTED_MODULE_3__["ViewWriter"].writeAll(viewWriters, config.output.src.views, config.output.src.components, config.output.src.meta, config.output.src.layout, config.output.src.controllers).then(function (paths) {
-            return outputFiles.push(...paths);
-        }), scriptWriter.write(config.output.src.layout + '/App/scripts').then(function (paths) {
-            return outputFiles.push(...paths);
-        }), styleWriter.write(config.output.src.layout + '/App/styles').then(function (paths) {
-            return outputFiles.push(...paths);
-        })]);
+            // Filter only HTML files.
+            .then(function () {
+                htmlFiles = inputFiles.filter(function (file) {
+                    return path__WEBPACK_IMPORTED_MODULE_1___default.a.extname(file) == '.html';
+                });
+            })
 
-        const makingPublicDir = makePublicDir(config, publicSubDirs).then(function (paths) {
-            return outputFiles.push(...paths);
-        });
-        try {
-            yield Promise.all([writingFiles, makingPublicDir]);
-        } catch (e) {
-            console.log(e);
-        }
+            // Execute the writers.
+            .then(_asyncToGenerator(function* () {
+                const scriptWriter = new _writers__WEBPACK_IMPORTED_MODULE_3__["ScriptWriter"]({
+                    baseUrl: config.input,
+                    prefetch: config.prefetch
+                });
 
-        // TODO: Enable Git?
-        // return git.add(outputFiles, config).then(files => {
-        //     return git.commit(files, 'Updated');
-        // });
+                const styleWriter = new _writers__WEBPACK_IMPORTED_MODULE_3__["StyleWriter"]({
+                    baseUrl: config.input,
+                    prefetch: config.prefetch,
+                    source: config.srouce
+                });
+
+                const transpilingHTMLFiles = htmlFiles.map(function (htmlFile) {
+                    return transpileHTMLFile(config, htmlFile, scriptWriter, styleWriter);
+                });
+
+                const viewWriters = yield Promise.all(transpilingHTMLFiles);
+
+                const writingFiles = yield Promise.all([_writers__WEBPACK_IMPORTED_MODULE_3__["ViewWriter"].writeAll(viewWriters, config.output.src.views, config.output.src.components, config.output.src.meta, config.output.src.layout, config.output.src.controllers).then(function (paths) {
+                    return outputFiles.push(...paths);
+                }), scriptWriter.write(config.output.src.layout + '/App/scripts').then(function (paths) {
+                    return outputFiles.push(...paths);
+                }), styleWriter.write(config.output.src.layout + '/App/styles').then(function (paths) {
+                    return outputFiles.push(...paths);
+                })]);
+
+                const makingPublicDir = makePublicDir(config, publicSubDirs).then(function (paths) {
+                    return outputFiles.push(...paths);
+                });
+
+                try {
+                    yield Promise.all([writingFiles, makingPublicDir]);
+                } catch (e) {
+                    console.log(e);
+                }
+
+                // TODO: Enable Git?
+                // return git.add(outputFiles, config).then(files => {
+                //     return git.commit(files, 'Updated');
+                // });
+            }));
+        });
     });
 
     return function transpile(_x) {
@@ -198,7 +215,7 @@ const transpile = (() => {
 })();
 
 const transpileHTMLFile = (() => {
-    var _ref2 = _asyncToGenerator(function* (config, htmlFile, scriptWriter, styleWriter) {
+    var _ref3 = _asyncToGenerator(function* (config, htmlFile, scriptWriter, styleWriter) {
         const html = (yield _libs__WEBPACK_IMPORTED_MODULE_2__["fs"].readFile(`${config.input}/${htmlFile}`)).toString();
         const $ = cheerio__WEBPACK_IMPORTED_MODULE_0___default.a.load(html);
         const $head = $('head');
@@ -229,12 +246,12 @@ const transpileHTMLFile = (() => {
     });
 
     return function transpileHTMLFile(_x2, _x3, _x4, _x5) {
-        return _ref2.apply(this, arguments);
+        return _ref3.apply(this, arguments);
     };
 })();
 
 const makePublicDir = (() => {
-    var _ref3 = _asyncToGenerator(function* (config, publicSubDirs) {
+    var _ref4 = _asyncToGenerator(function* (config, publicSubDirs) {
         const publicDir = config.output.public;
         yield Promise.all(publicSubDirs.map(function (publicSubDir) {
             return Object(_libs__WEBPACK_IMPORTED_MODULE_2__["ncp"])(`${config.input}/${publicSubDir}`, `${publicDir}/${publicSubDir}`);
@@ -253,7 +270,7 @@ const makePublicDir = (() => {
     });
 
     return function makePublicDir(_x6, _x7) {
-        return _ref3.apply(this, arguments);
+        return _ref4.apply(this, arguments);
     };
 })();
 
@@ -1190,6 +1207,7 @@ function bindJSX(self, jsx, children = []) {
             self[_].sockets.push(`${camelize(child.className)}List${index}`);
             jsx = jsx.replace(new RegExp(`(<af-${child.elName} />\\s*){2,}`, ''), `{map(proxies['${camelize(child.className)}List${index}'], props => <React.Fragment ${mergeProps('')}>{props.children ? props.children : null}</React.Fragment>)}`);
         } else {
+            // Bind controllers to children.
             jsx = jsx.replace(new RegExp(`af-${child.elName}`, 'g'), `${child.className}.Controller {...this.props}`);
 
             jsx = jsx.replace(new RegExp(`(<af-${child.elName} />\\s*)+`, !self[_].isComponent ? 'g' : ''), !self[_].isComponent ? `<${child.className}.Controller {...this.props}/>` : `{map(proxies['${child.className}'], props => <${child.className}.Controller ${mergeProps('')}>{props.children ? props.children : null}</${child.className}.Controller>)}`);
