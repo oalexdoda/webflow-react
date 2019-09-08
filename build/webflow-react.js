@@ -721,6 +721,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
             // const sock = $el.attr("wfr-d");
             // $afEl.attr("wfr-d", $el.attr("wfr-d"));
             $el.attr('wfr-c', null);
+            $el.attr('wfr-props', 'binder');
             // $el.attr("wfr-d", null);
             $afEl.insertAfter($el);
             // if (sock !== null && sock !== undefined) {
@@ -1221,14 +1222,16 @@ function bindJSX(self, jsx, children = []) {
     return jsx
     // Replace attributes
     .replace(/(wfr-a-)([\w_-]+)=(".*?")/g, (match, base) => match.replace(base, '').replace(/["]+/g, '').replace('onsubmit', 'onSubmit').replace('onclick', 'onClick').replace('autofocus', 'autoFocus'))
+    // Attach props
+    .replace(/(wfr-props=".*?")/g, (match, base) => match.replace(base, '{ ...this.props }'))
     // Open close
     .replace(/<([\w_-]+)-wfr-d-([\w_-]+)(.*?)>([^]*)<\/\1-wfr-d-\2>/g, (match, el, sock, attrs, children) => {
         // // attrs.forEach(attr => attr.replace('wfr-a-', ''));
         // console.log(el);
 
         return (/<[\w_-]+-wfr-d-[\w_-]+/.test(children) ? `{map(proxies['${sock}'], props => <${el} ${mergeProps(attrs)}>{createScope(props.children, proxies => <React.Fragment>
-                {props.topelement ? props.topelement() : null}
-                ${bindJSX(self, children)}</React.Fragment>)}</${el}>)}` : `{map(proxies['${sock}'], props => <${el} ${mergeProps(attrs)}>{props.children ? props.children : <React.Fragment>${children}</React.Fragment>}</${el}>)}`
+                            {props.topelement ? props.topelement() : null}
+                            ${bindJSX(self, children)}</React.Fragment>)}</${el}>)}` : `{map(proxies['${sock}'], props => <${el} ${mergeProps(attrs)}>{props.children ? props.children : <React.Fragment>${children}</React.Fragment>}</${el}>)}`
         );
     })
     // Self closing

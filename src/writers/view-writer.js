@@ -229,6 +229,7 @@ class ViewWriter extends Writer {
             // const sock = $el.attr("wfr-d");
             // $afEl.attr("wfr-d", $el.attr("wfr-d"));
             $el.attr('wfr-c', null);
+            $el.attr('wfr-props', 'binder');
             // $el.attr("wfr-d", null);
             $afEl.insertAfter($el);
             // if (sock !== null && sock !== undefined) {
@@ -806,6 +807,10 @@ function bindJSX(self, jsx, children = []) {
                     .replace('onclick', 'onClick')
                     .replace('autofocus', 'autoFocus')
             )
+            // Attach props
+            .replace(/(wfr-props=".*?")/g, (match, base) =>
+                match.replace(base, '{ ...this.props }')
+            )
             // Open close
             .replace(
                 /<([\w_-]+)-wfr-d-([\w_-]+)(.*?)>([^]*)<\/\1-wfr-d-\2>/g,
@@ -817,8 +822,11 @@ function bindJSX(self, jsx, children = []) {
                         ? `{map(proxies['${sock}'], props => <${el} ${mergeProps(
                               attrs
                           )}>{createScope(props.children, proxies => <React.Fragment>
-                {props.topelement ? props.topelement() : null}
-                ${bindJSX(self, children)}</React.Fragment>)}</${el}>)}`
+                            {props.topelement ? props.topelement() : null}
+                            ${bindJSX(
+                                self,
+                                children
+                            )}</React.Fragment>)}</${el}>)}`
                         : `{map(proxies['${sock}'], props => <${el} ${mergeProps(
                               attrs
                           )}>{props.children ? props.children : <React.Fragment>${children}</React.Fragment>}</${el}>)}`;
