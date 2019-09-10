@@ -26,7 +26,7 @@ With the current version, you can do the following by adding attributes to Webfl
 
 1. Declare a React component by adding the `wfr-c` attribute and the component name as the value;
 2. Declare a React dynamic data point by adding the `wfr-d` attribute and `true` as the value;
-3. Declare a React dynamic attribute by adding the `wfr-a` attribute and comma-split array of attributes as the value. e.g. `wfr-a="href,target"`;
+3. Empty a specific element by adding the `wfr-empty` attribute and `true` as the value;
 4. Ignore a specific element by adding the `wfr-ignore` attribute and `true` as the value;
 
 ## Methodology
