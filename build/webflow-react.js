@@ -240,7 +240,7 @@ const transpileHTMLFile = (() => {
             source: config.source
         });
 
-        setScripts(scriptWriter, $head, $);
+        setScripts(scriptWriter, $head, $, $body);
         setStyles(viewWriter, styleWriter, $head, $, config.output.src.views);
         setHTML(viewWriter, $body, $);
 
@@ -276,14 +276,25 @@ const makePublicDir = (() => {
     };
 })();
 
-const setScripts = (scriptWriter, $head) => {
-    const $scripts = $head.find('script[type="text/javascript"]');
+const setScripts = (scriptWriter, $head, $, $body) => {
+    const $scripts = {
+        head: $head.find('script[type="text/javascript"]'),
+        body: $body.find('script[type="text/javascript"]')
+    };
 
-    $scripts.each((i, script) => {
-        const $script = $head.find(script);
+    if ($scripts.head.length) {
+        $scripts.head.each((i, script) => {
+            const $script = $head.find(script);
+            scriptWriter.setScript($script.attr('src'), $script.html());
+        });
+    }
 
-        scriptWriter.setScript($script.attr('src'), $script.html());
-    });
+    if ($scripts.body.length) {
+        $scripts.body.each((i, script) => {
+            const $script = $body.find(script);
+            scriptWriter.setScript($script.attr('src'), $script.html());
+        });
+    }
 };
 
 const setStyles = (viewWriter, styleWriter, $head, _, viewsDir) => {
@@ -569,7 +580,7 @@ const htmltojsx = new htmltojsx__WEBPACK_IMPORTED_MODULE_1___default.a({ createC
 
 const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="/');
 // const removeHtmlFromLinks = (html) => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/ig, '').replace(/href="/ig, 'href="/'))
-const removeHtmlFromLinks = html => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/gi, ''));
+const removeHtmlFromLinks = html => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/gi, '').replace(/href="/gi, 'href="/'));
 
 let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])(_), _dec(_class = class ViewWriter extends _writer__WEBPACK_IMPORTED_MODULE_7__["default"] {
     static writeAll(viewWriters, pagesDir, componentDir, metaDir, layoutDir, ctrlsDir) {
@@ -748,6 +759,43 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         // Empty inner HTML
         $('[wfr-empty]').html('').attr('wfr-empty', null);
 
+        // Add rel="noopener noreferrer" to target="_blank" links.
+        // $('[target="_blank]').each(function() {
+        //     if (!$(this).is('[rel="noopener noreferrer"]')) {
+        //         $(this).attr('rel', 'noopener noreferrer');
+        //     }
+        // });
+
+        // // Function to replace tags.
+        // $.fn.replaceTagName = function(f) {
+        //     var g = [],
+        //         h = this.length;
+        //     while (h--) {
+        //         var k = document.createElement(f),
+        //             b = this[h],
+        //             d = b.attributes;
+        //         for (var c = d.length - 1; c >= 0; c--) {
+        //             var j = d[c];
+        //             k.setAttribute(j.name, j.value);
+        //         }
+        //         k.innerHTML = b.innerHTML;
+        //         $(b)
+        //             .after(k)
+        //             .remove();
+        //         g[h - 1] = k;
+        //     }
+        //     return $(g);
+        // };
+
+        // // Replace # anchors with buttons.
+        // $('a').each(function() {
+        //     if ($(this).is('[href="#"]') || !$(this).is('[href]')) {
+        //         $(this)
+        //             .removeAttr('href')
+        //             .replaceTagName('button');
+        //     }
+        // });
+
         // Default actions for forms.
         $('form').each(function () {
             if (!$(this).is('[action]')) {
@@ -797,21 +845,6 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
             $el.attr('wfr-d', null);
             // Workaround would help identify the closing tag
             el.tagName += `-wfr-d-${socketName}`;
-        });
-
-        // Attach socket attributes.
-        $('[wfr-a]').each((i, el) => {
-            const $el = $(el);
-            const socketAttrs = $el.attr('wfr-a').split(',');
-
-            socketAttrs.forEach(socketAttr => {
-                sockets.push('%string%' + socketAttr);
-
-                // Workaround to identify socket attributes.
-                $el.attr('wfr-a-' + socketAttr, "{ proxies['" + socketAttr + "'] }");
-            });
-
-            $el.attr('wfr-a', null);
         });
 
         // Refetch modified html
@@ -998,7 +1031,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
 
             ${
         // Add helpers if the component has data sockets.
-        this[_].sockets.length ? `import { createScope, map, transformProxies } from '../../helpers'` : ''}
+        this[_].sockets.length ? `import { map, transformProxies } from '../../helpers'` : ''}
 
             ${
         // Add CSS imports if the page has styles.
@@ -1220,15 +1253,10 @@ function bindJSX(self, jsx, children = []) {
     // ORDER MATTERS
     // Open close
     return jsx
-    // Replace attributes
-    .replace(/(wfr-a-)([\w_-]+)=(".*?")/g, (match, base) => match.replace(base, '').replace(/["]+/g, '').replace('onsubmit', 'onSubmit').replace('onclick', 'onClick').replace('autofocus', 'autoFocus'))
     // Attach props
     .replace(/(wfr-props=".*?")/g, (match, base) => match.replace(base, '{ ...this.props }'))
     // Open close
     .replace(/<([\w_-]+)-wfr-d-([\w_-]+)(.*?)>([^]*)<\/\1-wfr-d-\2>/g, (match, el, sock, attrs, children) => {
-        // // attrs.forEach(attr => attr.replace('wfr-a-', ''));
-        // console.log(el);
-
         return (/<[\w_-]+-wfr-d-[\w_-]+/.test(children) ? `{map(proxies['${sock}'], props => <${el} ${mergeProps(attrs)}>{createScope(props.children, proxies => <React.Fragment>
                             {props.topelement ? props.topelement() : null}
                             ${bindJSX(self, children)}</React.Fragment>)}</${el}>)}` : `{map(proxies['${sock}'], props => <${el} ${mergeProps(attrs)}>{props.children ? props.children : <React.Fragment>${children}</React.Fragment>}</${el}>)}`
