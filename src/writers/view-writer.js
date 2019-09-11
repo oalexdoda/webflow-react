@@ -60,12 +60,12 @@ const removeHtmlFromLinks = html => {
         html
             .replace('index.html', '')
             .replace(/\.html/gi, '')
-            .replace(
-                /<a.+?href="(.+?)".+?(?!target="_blank").+?>/g,
-                (match, href) => {
-                    return match.replace(href, '/' + href);
-                }
-            )
+            .replace(/<a.+?href="(.+?)".+?>/g, (match, href) => {
+                return match
+                    .replace(href, '/' + href)
+                    .replace('/https', 'https')
+                    .replace('/http', 'http');
+            })
     );
 };
 
