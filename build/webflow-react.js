@@ -578,9 +578,30 @@ const htmltojsx = new htmltojsx__WEBPACK_IMPORTED_MODULE_1___default.a({ createC
 //   return flatten;
 // };
 
-const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="/');
-// const removeHtmlFromLinks = (html) => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/ig, '').replace(/href="/ig, 'href="/'))
-const removeHtmlFromLinks = html => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/gi, '').replace(/href="/gi, 'href="/'));
+// Replace anchor link roots to relative.
+// html.replace(
+//     /<a.+?href="(.+?)".+?(?!target="_blank").+?>/g,
+//     (match, href) => {
+//         return match.replace(href, '/' + href);
+//     }
+// );
+
+// // Replace image roots to relative.
+// html.replace(/<img.+?src="(.+?)".+?>/g, (match, src) => {
+//     return match.replace(src, '/' + src);
+// });
+
+const adjustImagesToRoot = html => {
+    return html.replace(/<img.+?src="(.+?)".+?>/g, (match, src) => {
+        return match.replace(src, '/' + src);
+    });
+};
+
+const removeHtmlFromLinks = html => {
+    return adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/gi, '').replace(/<a.+?href="(.+?)".+?(?!target="_blank").+?>/g, (match, href) => {
+        return match.replace(href, '/' + href);
+    }));
+};
 
 let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])(_), _dec(_class = class ViewWriter extends _writer__WEBPACK_IMPORTED_MODULE_7__["default"] {
     static writeAll(viewWriters, pagesDir, componentDir, metaDir, layoutDir, ctrlsDir) {
@@ -830,6 +851,7 @@ let ViewWriter = (_dec = Object(_utils__WEBPACK_IMPORTED_MODULE_8__["Internal"])
         });
 
         const $body = $('body');
+
         html = $body.html();
 
         this[_].html = html;

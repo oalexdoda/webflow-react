@@ -36,15 +36,38 @@ const htmltojsx = new HTMLtoJSX({ createClass: false });
 //   return flatten;
 // };
 
-const adjustImagesToRoot = html => html.replace(/src="/gi, 'src="/');
-// const removeHtmlFromLinks = (html) => adjustImagesToRoot(html.replace('index.html', '').replace(/\.html/ig, '').replace(/href="/ig, 'href="/'))
-const removeHtmlFromLinks = html =>
-    adjustImagesToRoot(
+// Replace anchor link roots to relative.
+// html.replace(
+//     /<a.+?href="(.+?)".+?(?!target="_blank").+?>/g,
+//     (match, href) => {
+//         return match.replace(href, '/' + href);
+//     }
+// );
+
+// // Replace image roots to relative.
+// html.replace(/<img.+?src="(.+?)".+?>/g, (match, src) => {
+//     return match.replace(src, '/' + src);
+// });
+
+const adjustImagesToRoot = html => {
+    return html.replace(/<img.+?src="(.+?)".+?>/g, (match, src) => {
+        return match.replace(src, '/' + src);
+    });
+};
+
+const removeHtmlFromLinks = html => {
+    return adjustImagesToRoot(
         html
             .replace('index.html', '')
             .replace(/\.html/gi, '')
-            .replace(/href="/gi, 'href="/')
+            .replace(
+                /<a.+?href="(.+?)".+?(?!target="_blank").+?>/g,
+                (match, href) => {
+                    return match.replace(href, '/' + href);
+                }
+            )
     );
+};
 
 @Internal(_)
 class ViewWriter extends Writer {
@@ -334,6 +357,7 @@ class ViewWriter extends Writer {
         });
 
         const $body = $('body');
+
         html = $body.html();
 
         this[_].html = html;
