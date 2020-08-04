@@ -1,6 +1,6 @@
 # Overview
 
-## NOTE: This project is in heavy development. The ReadMe will be updated along the way.
+## NOTE: LOOKING FOR HELP - This project is in heavy development. The ReadMe will be updated along the way.
 
 _Webflow React from Abruptive_ is a CLI tool that helps designers & developers convert their Webflow projects to & React.js. Optimized by default for Create React App's (CRA) structure, yet customizable to fit any custom structure you need.
 
