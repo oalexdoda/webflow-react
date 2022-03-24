@@ -23,7 +23,7 @@
         "find-root": "^1.1.0",
         "fs-extra": "^7.0.0",
         "htmltojsx": "https://github.com/franciscofsales/react-magic",
-        "minimist": "^1.2.0",
+        "minimist": "^1.2.6",
         "recursive-readdir": "^2.2.2",
         "resolve": "^1.8.1",
         "rimraf": "^2.6.3",
