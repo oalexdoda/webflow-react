@@ -1,3 +1,19 @@
+To the Webflow & Next.js communities,
+
+Would you be interested in a simple no-code service that allows you to plug in your Webflow site link, optionally add some simple attributes, and have it **automatically generate a working Next.js / React app for you**?
+
+**Complete this 1-minute survey:** 
+[GO TO ANONYMOUS SURVEY](https://b.link/b9z8en)
+
+If you know someone who would benefit from this, share this survey with them. 👆
+
+**Side Note**: This repository has been outdated, but I have an insane amount of resources that have been developed in the no-code Webflow to React space ever since this repo came out. All of which have been used to create both simple and enterprise-ready apps.
+
+Thanks!
+@altechzilla 
+
+---
+
 # Overview
 
 ## NOTE: LOOKING FOR HELP - This project is in heavy development. The ReadMe will be updated along the way.
