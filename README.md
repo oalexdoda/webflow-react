@@ -1,4 +1,4 @@
-To the Webflow & Next.js communities,
+To the Webflow & React communities,
 
 Would you be interested in a simple no-code service that allows you to plug in your Webflow site link, optionally add some simple attributes, and have it **automatically generate a working Next.js / React app for you**?
 
@@ -15,8 +15,6 @@ Thanks!
 ---
 
 # Overview
-
-## NOTE: LOOKING FOR HELP - This project is in heavy development. The ReadMe will be updated along the way.
 
 _Webflow React from Abruptive_ is a CLI tool that helps designers & developers convert their Webflow projects to & React.js. Optimized by default for Create React App's (CRA) structure, yet customizable to fit any custom structure you need.
 
